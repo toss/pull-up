@@ -1,0 +1,12 @@
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+.pnp.*
+dist
+
+.nx/cache
+.nx/workspace-data
