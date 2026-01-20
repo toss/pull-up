@@ -18,7 +18,7 @@ export default defineConfig(
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: ["./tsconfig.json", "./packages/**/tsconfig.json"],
+        project: ["./tsconfig.json"],
       },
     },
     rules: {

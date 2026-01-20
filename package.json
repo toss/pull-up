@@ -1,23 +1,40 @@
 {
-  "name": "codeowners-kit-monorepo",
-  "private": true,
-  "workspaces": [
-    "packages/*"
+  "name": "pull-up",
+  "type": "module",
+  "version": "0.0.1-alpha.0",
+  "bin": {
+    "pullup": "dist/index.mjs"
+  },
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
   ],
   "scripts": {
-    "build:all": "nx run-many -t build",
-    "typecheck:all": "nx run-many -t typecheck"
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "pullup": "yarn build && node dist/index.mjs",
+    "prepack": "yarn build",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@nx/js": "^22.3.3",
-    "eslint": "^9.39.2",
+    "@types/node": "^24.10.0",
+    "eslint": "^9.7.0",
     "eslint-plugin-import-x": "^4.0.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^17.0.0",
-    "nx": "^22.3.3",
     "prettier": "^3.8.0",
+    "tsdown": "^0.19.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.27.0"
+  },
+  "dependencies": {
+    "clipanion": "^4.0.0-rc.4",
+    "fast-glob": "^3.3.3",
+    "find-up": "^8.0.0",
+    "picocolors": "^1.1.1"
   },
   "packageManager": "yarn@4.12.0"
 }
