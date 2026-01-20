@@ -33,13 +33,27 @@ function resolveEntries(
 ): CodeownersEntry[] {
   const relativeDir = path.relative(root, path.dirname(filePath));
 
-  return entries.map((entry) => ({
-    pattern:
-      entry.pattern === "*"
-        ? `/${relativeDir}/`
-        : `/${path.join(relativeDir, entry.pattern)}`,
-    owners: entry.owners,
-  }));
+  return entries.map((entry) => {
+    if (entry.pattern === "*") {
+      return {
+        pattern: `/${relativeDir}/`,
+        owners: entry.owners,
+      };
+    }
+
+    const normalizedPattern = entry.pattern.startsWith("/")
+      ? entry.pattern.slice(1)
+      : entry.pattern;
+
+    const resolvedPattern = relativeDir
+      ? `/${path.join(relativeDir, normalizedPattern)}`
+      : `/${normalizedPattern}`;
+
+    return {
+      pattern: resolvedPattern,
+      owners: entry.owners,
+    };
+  });
 }
 
 function parse(content: string): CodeownersEntry[] {
