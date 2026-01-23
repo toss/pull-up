@@ -1,16 +1,14 @@
 import { Command, Option } from "clipanion";
 import pc from "picocolors";
-import { resolveRule, Rule } from "../../core";
-import fs from "node:fs/promises";
-import { defaultRules } from "../constants";
-import { getRepositoryRoot } from "../utils";
-import path from "node:path";
+import { resolveConfig } from "../../core/resolve-config";
+import { runJob } from "../../core/run-job";
+import { resolveRepositoryRoot } from "../utils";
 
 export class CheckCommand extends Command {
   static paths = [["check"]];
   static usage = Command.Usage({
     description: "Check if generated files are up to date",
-    examples: [["Check all rules", "pullup check"]],
+    examples: [["Check all jobs", "pullup check"]],
   });
 
   root = Option.String("--root", {
@@ -23,73 +21,29 @@ export class CheckCommand extends Command {
     required: false,
   });
 
-  rules = Option.Array("--rule", {
-    description: "The rules to check",
-    required: false,
-  });
-
   async execute() {
-    const repoRoot = await this.resolveRoot();
-    const resolvedRules = this.resolveRules();
+    const cwd = this.cwd ?? process.cwd();
+    const [repoRoot, jobs] = await Promise.all([
+      resolveRepositoryRoot(cwd, this.root),
+      resolveConfig(cwd),
+    ]);
 
-    if (resolvedRules.length === 0) {
-      console.log(pc.yellow("✘ No rules found to check"));
+    if (jobs.length === 0) {
+      console.log(pc.yellow("✘ No jobs found to check"));
       return;
     }
 
-    const results = await Promise.all(
-      resolvedRules.map(([name, rule]) => this.checkRule(name, rule, repoRoot)),
-    );
+    const results = await Promise.all(jobs.map((job) => runJob(job, repoRoot)));
 
-    const failures = results.filter((r) => !r.ok);
-
-    if (failures.length > 0) {
-      failures.forEach((f) =>
+    for (const { isSame, jobInfo } of results) {
+      if (!isSame) {
         console.error(
-          pc.red(`✘ ${f.name} is outdated. Run 'pullup sync' to update.`),
-        ),
-      );
-      process.exit(1);
+          pc.red(`✘ ${jobInfo.name} is outdated. Run 'pullup sync' to update.`),
+        );
+        process.exit(1);
+      }
     }
 
     console.log(pc.green("✔ All files are up to date"));
-  }
-
-  private async resolveRoot(): Promise<string> {
-    if (this.root != null) return this.root;
-
-    const cwd = this.cwd ?? process.cwd();
-    const root = await getRepositoryRoot(cwd);
-
-    if (root == null) throw new Error("Repository root not found");
-    return root;
-  }
-
-  private async checkRule(
-    name: string,
-    rule: Rule,
-    repoRoot: string,
-  ): Promise<{ name: string; ok: boolean }> {
-    const outputPath = path.resolve(repoRoot, rule.output);
-    const existing = await readFileOrNull(outputPath);
-    const resolved = await resolveRule(rule, repoRoot);
-
-    return { name, ok: existing === resolved.contents };
-  }
-
-  private resolveRules(): [string, Rule][] {
-    const ruleKeys =
-      this.rules != null ? this.rules : Object.keys(defaultRules);
-    return Object.entries(defaultRules).filter(([name]) =>
-      ruleKeys.includes(name),
-    );
-  }
-}
-
-async function readFileOrNull(absPath: string): Promise<string | null> {
-  try {
-    return await fs.readFile(absPath, "utf-8");
-  } catch {
-    return null;
   }
 }

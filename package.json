@@ -3,17 +3,21 @@
   "type": "module",
   "version": "0.0.1-alpha.0",
   "bin": {
-    "pullup": "dist/index.mjs"
+    "pullup": "dist/bin/index.mjs"
   },
-  "main": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "dist/bin/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/core/index.mjs",
+      "types": "./dist/core/index.d.mts"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "pullup": "yarn build && node dist/index.mjs",
     "prepack": "yarn build",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -32,6 +36,7 @@
   },
   "dependencies": {
     "clipanion": "^4.0.0-rc.4",
+    "cosmiconfig": "^9.0.0",
     "fast-glob": "^3.3.3",
     "find-up": "^8.0.0",
     "picocolors": "^1.1.1"

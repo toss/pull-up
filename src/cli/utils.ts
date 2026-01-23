@@ -1,14 +1,16 @@
 import { findUp } from "find-up";
 import path from "path";
 
-export async function getRepositoryRoot(cwd: string): Promise<string | null> {
+export async function resolveRepositoryRoot(cwd: string, root?: string) {
+  if (root != null) return root;
+
   const dotGit = await findUp(".git", {
     type: "directory",
     cwd,
   });
 
   if (dotGit == null) {
-    return null;
+    throw new Error("Repository root not found");
   }
 
   return path.dirname(dotGit);
