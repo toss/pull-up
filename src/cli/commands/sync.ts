@@ -1,10 +1,10 @@
 import { Command, Option } from "clipanion";
 import pc from "picocolors";
-import { resolveRule, type Rule } from "../../core";
 import fs from "node:fs/promises";
-import { defaultRules } from "../constants";
-import { getRepositoryRoot } from "../utils";
+import { resolveRepositoryRoot } from "../utils";
 import path from "node:path";
+import { resolveConfig } from "../../core/resolve-config";
+import { runJob } from "../../core/run-job";
 
 export class SyncCommand extends Command {
   static paths = [["sync"]];
@@ -28,67 +28,38 @@ export class SyncCommand extends Command {
     required: false,
   });
 
-  rules = Option.Array("--rule", {
-    description: "The rules to sync",
-    required: false,
-  });
-
   async execute() {
-    const repoRoot = await this.resolveRoot();
-    const resolvedRules = this.resolveRules();
+    const cwd = this.cwd ?? process.cwd();
+    const repoRoot = await resolveRepositoryRoot(cwd, this.root);
+    const jobs = await resolveConfig(cwd);
 
-    if (resolvedRules.length === 0) {
-      console.log(pc.yellow("✘ No rules found to sync"));
+    if (jobs.length === 0) {
+      console.log(pc.yellow("✘ No jobs found to sync"));
       return;
     }
 
-    for (const [name, rule] of resolvedRules) {
-      if (this.rules != null && !this.rules.includes(name)) {
+    const results = await Promise.all(jobs.map((job) => runJob(job, repoRoot)));
+
+    for (const { jobInfo, generated, isSame } of results) {
+      if (this.dryRun) {
+        console.log(pc.cyan(`┌─ [Job] ${jobInfo.name}`));
+        console.log(`${pc.cyan("│")}  ${pc.dim(`Output: ${jobInfo.output}`)}`);
+        console.log(`${pc.cyan("│")}`);
+        generated.contents.split("\n").forEach((line) => {
+          console.log(`${pc.cyan("│")}  ${line}`);
+        });
+        console.log(`${pc.cyan("└─")}`);
         continue;
       }
 
-      try {
-        const resolved = await resolveRule(rule, repoRoot);
-
-        if (this.dryRun) {
-          console.log(pc.cyan(`┌─ [Rule] ${name}`));
-          console.log(`${pc.cyan("│")}  ${pc.dim(`Output: ${rule.output}`)}`);
-          console.log(`${pc.cyan("│")}`);
-          resolved.contents.split("\n").forEach((line) => {
-            console.log(`${pc.cyan("│")}  ${line}`);
-          });
-          console.log(`${pc.cyan("└─")}`);
-          continue;
-        }
-
-        const outputPath = path.resolve(repoRoot, rule.output);
+      if (!isSame) {
+        const outputPath = path.resolve(repoRoot, jobInfo.output);
 
         await fs.mkdir(path.dirname(outputPath), { recursive: true });
-        await fs.writeFile(outputPath, resolved.contents);
-
-        console.log(pc.green(`✔ ${name} synced`));
-      } catch (error) {
-        console.error(pc.red(`✘ ${name}: ${error}`));
-        process.exit(1);
+        await fs.writeFile(outputPath, generated.contents);
       }
+
+      console.log(pc.green(`✔ ${jobInfo.name} synced`));
     }
-  }
-
-  private async resolveRoot(): Promise<string> {
-    if (this.root != null) return this.root;
-
-    const cwd = this.cwd ?? process.cwd();
-    const root = await getRepositoryRoot(cwd);
-
-    if (root == null) throw new Error("Repository root not found");
-    return root;
-  }
-
-  private resolveRules(): [string, Rule][] {
-    const ruleKeys =
-      this.rules != null ? this.rules : Object.keys(defaultRules);
-    return Object.entries(defaultRules).filter(([name]) =>
-      ruleKeys.includes(name),
-    );
   }
 }

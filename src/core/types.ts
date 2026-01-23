@@ -1,30 +1,28 @@
 type Awaitable<T> = T | PromiseLike<T>;
 
-export type FileSnapshot = { path: string; contents: string };
+export type Source = { path: string; contents: string };
 
 export interface TransformContext {
   /* The path of the repository root. */
-  root: string;
+  rootDir: string;
 
   /* The path of the output file. */
   outputPath: string;
-
-  /* The existing contents of the output file. If the file does not exist, it is null. */
-  existingContents: string | null;
 }
 
-export interface Rule {
+export interface Job {
+  /** The name of the job. */
+  name: string;
+
   /** Glob patterns to collect files from. */
-  from: string[];
+  input: string[];
 
   /** Transform the collected files into a new contents. */
   transform: (
-    sources: FileSnapshot[],
+    inputFiles: Source[],
     context: TransformContext,
   ) => Awaitable<string>;
 
   /** The path to the output file. */
   output: string;
 }
-
-export type Ruleset = Record<string, Rule>;
