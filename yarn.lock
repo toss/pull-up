@@ -606,6 +606,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pull-up/cli@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@pull-up/cli@workspace:."
+  dependencies:
+    "@changesets/cli": "npm:^2.29.8"
+    "@types/node": "npm:^24.10.0"
+    clipanion: "npm:^4.0.0-rc.4"
+    cosmiconfig: "npm:^9.0.0"
+    eslint: "npm:^9.7.0"
+    eslint-plugin-import-x: "npm:^4.0.0"
+    eslint-plugin-simple-import-sort: "npm:^12.1.1"
+    fast-glob: "npm:^3.3.3"
+    find-up: "npm:^8.0.0"
+    globals: "npm:^17.0.0"
+    picocolors: "npm:^1.1.1"
+    prettier: "npm:^3.8.0"
+    tsdown: "npm:^0.19.0"
+    typescript: "npm:^5.9.2"
+    typescript-eslint: "npm:^8.27.0"
+  bin:
+    pullup: dist/bin/index.mjs
+  languageName: unknown
+  linkType: soft
+
 "@quansync/fs@npm:^1.0.0":
   version: 1.0.0
   resolution: "@quansync/fs@npm:1.0.0"
@@ -2414,30 +2438,6 @@ __metadata:
   checksum: 10c0/33169b594009e48f570471271be7eac7cdcf88a209eed39ac3b8d6d78984039bfa9132f82b7e6ba3b06711f3bfe0222a62a1bfb87c43f50c25a83df1b78a2c42
   languageName: node
   linkType: hard
-
-"pull-up@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "pull-up@workspace:."
-  dependencies:
-    "@changesets/cli": "npm:^2.29.8"
-    "@types/node": "npm:^24.10.0"
-    clipanion: "npm:^4.0.0-rc.4"
-    cosmiconfig: "npm:^9.0.0"
-    eslint: "npm:^9.7.0"
-    eslint-plugin-import-x: "npm:^4.0.0"
-    eslint-plugin-simple-import-sort: "npm:^12.1.1"
-    fast-glob: "npm:^3.3.3"
-    find-up: "npm:^8.0.0"
-    globals: "npm:^17.0.0"
-    picocolors: "npm:^1.1.1"
-    prettier: "npm:^3.8.0"
-    tsdown: "npm:^0.19.0"
-    typescript: "npm:^5.9.2"
-    typescript-eslint: "npm:^8.27.0"
-  bin:
-    pullup: dist/bin/index.mjs
-  languageName: unknown
-  linkType: soft
 
 "punycode@npm:^2.1.0":
   version: 2.3.1
