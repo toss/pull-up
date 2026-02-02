@@ -1,7 +1,7 @@
 {
   "name": "pull-up",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "bin": {
     "pullup": "dist/bin/index.mjs"
   },
@@ -24,6 +24,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.8",
     "@types/node": "^24.10.0",
     "eslint": "^9.7.0",
     "eslint-plugin-import-x": "^4.0.0",
