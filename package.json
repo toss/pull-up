@@ -1,17 +1,11 @@
 {
-  "name": "pull-up",
+  "name": "@pull-up/cli",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "bin": {
     "pullup": "dist/bin/index.mjs"
   },
   "main": "dist/bin/index.mjs",
-  "exports": {
-    ".": {
-      "import": "./dist/core/index.mjs",
-      "types": "./dist/core/index.d.mts"
-    }
-  },
   "files": [
     "dist"
   ],
