@@ -6,6 +6,21 @@
     "pullup": "dist/bin/index.mjs"
   },
   "main": "dist/bin/index.mjs",
+  "author": "Hoyeon Lee <hoyeon@toss.im>",
+  "bugs": "https://github.com/toss/pull-up/issues",
+  "keywords": [
+    "pull-up",
+    "monorepo",
+    "config",
+    "sync",
+    "generate",
+    "merge",
+    "codeowners"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toss/pull-up.git"
+  },
   "files": [
     "dist"
   ],
