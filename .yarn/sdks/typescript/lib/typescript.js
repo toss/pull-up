@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const {existsSync} = require(`fs`);
-const {createRequire, register} = require(`module`);
-const {resolve} = require(`path`);
-const {pathToFileURL} = require(`url`);
+const { existsSync } = require(`fs`);
+const { createRequire, register } = require(`module`);
+const { resolve } = require(`path`);
+const { pathToFileURL } = require(`url`);
 
 const relPnpApiPath = "../../../../.pnp.cjs";
 
@@ -25,8 +25,8 @@ if (existsSync(absPnpApiPath)) {
 }
 
 const wrapWithUserWrapper = existsSync(absUserWrapperPath)
-  ? exports => absRequire(absUserWrapperPath)(exports)
-  : exports => exports;
+  ? (exports) => absRequire(absUserWrapperPath)(exports)
+  : (exports) => exports;
 
 // Defer to the real typescript your application uses
 module.exports = wrapWithUserWrapper(absRequire(`typescript`));

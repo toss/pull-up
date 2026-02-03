@@ -114,6 +114,7 @@ yarn changeset
 ```
 
 Select the change type:
+
 - `patch` — Bug fixes
 - `minor` — New features
 - `major` — Breaking changes
