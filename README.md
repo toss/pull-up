@@ -34,11 +34,11 @@ packages/
 ## Installation
 
 ```bash
-npm install -D pull-up
+npm install -D @pull-up/cli
 # or
-yarn add -D pull-up
+yarn add -D @pull-up/cli
 # or
-pnpm add -D pull-up
+pnpm add -D @pull-up/cli
 ```
 
 ## Configuration
@@ -46,7 +46,7 @@ pnpm add -D pull-up
 Create a config file in your project root:
 
 ```ts
-import { defineConfig, codeownersJob } from "pull-up";
+import { defineConfig, codeownersJob } from "@pull-up/cli";
 
 export default defineConfig(codeownersJob());
 // or export default defineConfig([codeownersJob()]);
@@ -70,7 +70,7 @@ codeownersJob({
 You can define custom jobs using `defineJob`:
 
 ```ts
-import { defineConfig, defineJob } from "pull-up";
+import { defineConfig, defineJob } from "@pull-up/cli";
 
 const myJob = defineJob({
   name: "my-job",
