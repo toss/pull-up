@@ -3,9 +3,15 @@
   "type": "module",
   "version": "0.0.1",
   "bin": {
-    "pullup": "dist/bin/index.mjs"
+    "pullup": "./dist/bin/index.mjs"
   },
-  "main": "dist/bin/index.mjs",
+  "main": "./dist/core/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/core/index.d.mts",
+      "import": "./dist/core/index.mjs"
+    }
+  },
   "author": "Hoyeon Lee <hoyeon@toss.im>",
   "bugs": "https://github.com/toss/pull-up/issues",
   "keywords": [
