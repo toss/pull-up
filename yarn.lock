@@ -115,6 +115,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@changesets/changelog-github@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@changesets/changelog-github@npm:0.5.2"
+  dependencies:
+    "@changesets/get-github-info": "npm:^0.7.0"
+    "@changesets/types": "npm:^6.1.0"
+    dotenv: "npm:^8.1.0"
+  checksum: 10c0/c2dbf767f7f18f44539d92f7fd0f42ef6fc33d8f3583a0cd2a558fe8242a4f2db178bf77497c73780652afbae55704b14c32dd33f4d61ebdf28113a0af08f19b
+  languageName: node
+  linkType: hard
+
 "@changesets/cli@npm:^2.29.8":
   version: 2.29.8
   resolution: "@changesets/cli@npm:2.29.8"
@@ -186,6 +197,16 @@ __metadata:
     picocolors: "npm:^1.1.0"
     semver: "npm:^7.5.3"
   checksum: 10c0/b9d9992440b7e09dcaf22f57d28f1d8e0e31996e1bc44dbbfa1801e44f93fa49ebba6f9356c60f6ff0bd85cd0f0d0b8602f7e0f2addc5be647b686e6f8985f70
+  languageName: node
+  linkType: hard
+
+"@changesets/get-github-info@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "@changesets/get-github-info@npm:0.7.0"
+  dependencies:
+    dataloader: "npm:^1.4.0"
+    node-fetch: "npm:^2.5.0"
+  checksum: 10c0/3a4e497a0d05ea9cb1a17d2193f13d865d2dab8dc6e9162c63c2ffa2719338c27bfa897481feed9abf484075a27284e8c050210cff7b7dedde6a18303440e4d8
   languageName: node
   linkType: hard
 
@@ -610,6 +631,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@pull-up/cli@workspace:."
   dependencies:
+    "@changesets/changelog-github": "npm:^0.5.2"
     "@changesets/cli": "npm:^2.29.8"
     "@types/node": "npm:^24.10.0"
     clipanion: "npm:^4.0.0-rc.4"
@@ -1399,6 +1421,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dataloader@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "dataloader@npm:1.4.0"
+  checksum: 10c0/5fa4c843b9e60195092f1fc7e2acaff318ed46886dc670ddff683bc560f12d4079e6d1e77749501b7e111a8582d26a2aa2a2fbe6d7d5e1520cef64f4e1fd242d
+  languageName: node
+  linkType: hard
+
 "debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.4.1, debug@npm:^4.4.3":
   version: 4.4.3
   resolution: "debug@npm:4.4.3"
@@ -1438,6 +1467,13 @@ __metadata:
   dependencies:
     path-type: "npm:^4.0.0"
   checksum: 10c0/dcac00920a4d503e38bb64001acb19df4efc14536ada475725e12f52c16777afdee4db827f55f13a908ee7efc0cb282e2e3dbaeeb98c0993dd93d1802d3bf00c
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^8.1.0":
+  version: 8.6.0
+  resolution: "dotenv@npm:8.6.0"
+  checksum: 10c0/6750431dea8efbd54b9f2d9681b04e1ccc7989486461dcf058bb708d9e3d63b04115fcdf8840e38ad1e24a4a2e1e7c1560626c5e3ac7bc09371b127c49e2d45f
   languageName: node
   linkType: hard
 
@@ -2223,6 +2259,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-fetch@npm:^2.5.0":
+  version: 2.7.0
+  resolution: "node-fetch@npm:2.7.0"
+  dependencies:
+    whatwg-url: "npm:^5.0.0"
+  peerDependencies:
+    encoding: ^0.1.0
+  peerDependenciesMeta:
+    encoding:
+      optional: true
+  checksum: 10c0/b55786b6028208e6fbe594ccccc213cab67a72899c9234eb59dba51062a299ea853210fcf526998eaa2867b0963ad72338824450905679ff0fa304b8c5093ae8
+  languageName: node
+  linkType: hard
+
 "obug@npm:^2.1.1":
   version: 2.1.1
   resolution: "obug@npm:2.1.1"
@@ -2786,6 +2836,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tr46@npm:~0.0.3":
+  version: 0.0.3
+  resolution: "tr46@npm:0.0.3"
+  checksum: 10c0/047cb209a6b60c742f05c9d3ace8fa510bff609995c129a37ace03476a9b12db4dbf975e74600830ef0796e18882b2381fb5fb1f6b4f96b832c374de3ab91a11
+  languageName: node
+  linkType: hard
+
 "tree-kill@npm:^1.2.2":
   version: 1.2.2
   resolution: "tree-kill@npm:1.2.2"
@@ -3028,6 +3085,23 @@ __metadata:
   dependencies:
     punycode: "npm:^2.1.0"
   checksum: 10c0/4ef57b45aa820d7ac6496e9208559986c665e49447cb072744c13b66925a362d96dd5a46c4530a6b8e203e5db5fe849369444440cb22ecfc26c679359e5dfa3c
+  languageName: node
+  linkType: hard
+
+"webidl-conversions@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "webidl-conversions@npm:3.0.1"
+  checksum: 10c0/5612d5f3e54760a797052eb4927f0ddc01383550f542ccd33d5238cfd65aeed392a45ad38364970d0a0f4fea32e1f4d231b3d8dac4a3bdd385e5cf802ae097db
+  languageName: node
+  linkType: hard
+
+"whatwg-url@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "whatwg-url@npm:5.0.0"
+  dependencies:
+    tr46: "npm:~0.0.3"
+    webidl-conversions: "npm:^3.0.0"
+  checksum: 10c0/1588bed84d10b72d5eec1d0faa0722ba1962f1821e7539c535558fb5398d223b0c50d8acab950b8c488b4ba69043fd833cc2697056b167d8ad46fac3995a55d5
   languageName: node
   linkType: hard
 
