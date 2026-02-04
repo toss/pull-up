@@ -626,7 +626,7 @@ __metadata:
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.27.0"
   bin:
-    pullup: dist/bin/index.mjs
+    pullup: ./dist/bin/index.mjs
   languageName: unknown
   linkType: soft
 
