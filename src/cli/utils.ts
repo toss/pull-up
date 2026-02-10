@@ -5,7 +5,7 @@ export async function resolveRepositoryRoot(cwd: string, root?: string) {
   if (root != null) return root;
 
   const dotGit = await findUp(".git", {
-    type: "both",
+    type: "directory",
     cwd,
   });
 
