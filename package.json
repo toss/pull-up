@@ -1,7 +1,7 @@
 {
   "name": "@pull-up/cli",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "bin": {
     "pullup": "./dist/bin/index.mjs"
   },
