@@ -15,8 +15,16 @@ export const codeownersJob = defineJob((options?: CodeownersJobOptions) => ({
   input: options?.input ?? DEFAULT_FROM_PATTERN,
   output: options?.output ?? DEFAULT_OUTPUT_PATH,
   transform: (inputFiles, { rootDir }) => {
+    // GitHub uses the last matching rule, so nested owners must follow defaults.
+    const sortedInputFiles = inputFiles
+      .map((file) => ({
+        ...file,
+        depth: path.resolve(rootDir, file.path).split(path.sep).length,
+      }))
+      .sort((a, b) => a.depth - b.depth || a.path.localeCompare(b.path));
+
     const codeowners = Codeowners.merge(
-      inputFiles.map((inputFile) => {
+      sortedInputFiles.map((inputFile) => {
         const baseDir = path.relative(rootDir, path.dirname(inputFile.path));
 
         return Codeowners.from(inputFile.contents).map(
