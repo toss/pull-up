@@ -1,5 +1,11 @@
 # @pull-up/cli
 
+## 0.0.4
+
+### Patch Changes
+
+- [#14](https://github.com/toss/pull-up/pull/14) [`7e82a7f`](https://github.com/toss/pull-up/commit/7e82a7f97a30fe2c3b781f09811b3eb11157b8d9) Thanks [@mununki](https://github.com/mununki)! - Fix CODEOWNERS merge order so parent rules appear before nested rules, preserving ownership overrides for nested directories.
+
 ## 0.0.3
 
 ### Patch Changes
