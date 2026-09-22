@@ -32,6 +32,7 @@
   ],
   "scripts": {
     "build": "tsdown",
+    "test": "yarn build && node --test tests/*.test.mjs",
     "dev": "tsdown --watch",
     "prepack": "yarn build",
     "lint": "eslint .",
