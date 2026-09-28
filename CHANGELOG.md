@@ -1,5 +1,13 @@
 # @pull-up/cli
 
+## 0.0.5
+
+### Patch Changes
+
+- [#16](https://github.com/toss/pull-up/pull/16) [`45d5305`](https://github.com/toss/pull-up/commit/45d530556d4bd68eb5131f31715762a35945dd62) Thanks [@mununki](https://github.com/mununki)! - Group merged CODEOWNERS rules by directory while keeping parent rules before nested overrides.
+
+  Resolve input paths relative to the repository root so running from a subdirectory generates correct ownership patterns.
+
 ## 0.0.4
 
 ### Patch Changes
