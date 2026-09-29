@@ -1,5 +1,11 @@
 # @pull-up/cli
 
+## 0.0.6
+
+### Patch Changes
+
+- [#24](https://github.com/toss/pull-up/pull/24) [`5c8c387`](https://github.com/toss/pull-up/commit/5c8c387ab2e8a074f5dea334fc865402d6007d04) Thanks [@mununki](https://github.com/mununki)! - Normalize CODEOWNERS source paths containing `./` or `..` before sorting so parent rules do not override child rules.
+
 ## 0.0.5
 
 ### Patch Changes
