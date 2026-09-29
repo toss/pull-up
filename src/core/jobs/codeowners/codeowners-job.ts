@@ -20,19 +20,12 @@ export const codeownersJob = defineJob((options?: CodeownersJobOptions) => ({
     const sortedInputFiles = sortByDirectory(inputFiles, rootDir);
 
     const codeowners = Codeowners.merge(
-      sortedInputFiles.map((inputFile) => {
-        const baseDir = path.relative(
-          rootDir,
-          path.dirname(path.resolve(rootDir, inputFile.path)),
-        );
-
-        return Codeowners.from(inputFile.contents).map(
-          ({ pattern, owners }) => ({
-            pattern: toAbsolutePattern(pattern, baseDir),
-            owners,
-          }),
-        );
-      }),
+      sortedInputFiles.map(({ file, baseDir }) =>
+        Codeowners.from(file.contents).map(({ pattern, owners }) => ({
+          pattern: toAbsolutePattern(pattern, baseDir),
+          owners,
+        })),
+      ),
     );
 
     if (codeowners.isEmpty()) {
@@ -43,21 +36,22 @@ export const codeownersJob = defineJob((options?: CodeownersJobOptions) => ({
   },
 }));
 
-// Windows accepts both separators; on POSIX, backslashes can be part of a name.
-const pathSeparator = path.sep === "\\" ? /[\\/]/ : path.sep;
-
 // Compare directory segments to keep parents before their descendants.
-const sortByDirectory = (inputFiles: Source[], rootDir: string): Source[] =>
+const sortByDirectory = (inputFiles: Source[], rootDir: string) =>
   inputFiles
     .map((file) => {
-      const relativePath = path.isAbsolute(file.path)
-        ? path.relative(rootDir, file.path)
-        : file.path;
+      // Use the same normalized path for ordering and generated patterns.
+      const relativePath = path.relative(
+        rootDir,
+        path.resolve(rootDir, file.path),
+      );
       const directoryPath = path.dirname(relativePath);
+      const baseDir = directoryPath === "." ? "" : directoryPath;
       return {
         file,
-        segments:
-          directoryPath === "." ? [] : directoryPath.split(pathSeparator),
+        relativePath,
+        baseDir,
+        segments: baseDir === "" ? [] : baseDir.split(path.sep),
       };
     })
     .sort((a, b) => {
@@ -72,10 +66,9 @@ const sortByDirectory = (inputFiles: Source[], rootDir: string): Source[] =>
 
       return (
         a.segments.length - b.segments.length ||
-        a.file.path.localeCompare(b.file.path)
+        a.relativePath.localeCompare(b.relativePath)
       );
-    })
-    .map(({ file }) => file);
+    });
 
 const toAbsolutePattern = (pattern: string, baseDir: string) => {
   const base = baseDir !== "" ? `/${baseDir}` : "";

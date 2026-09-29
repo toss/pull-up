@@ -442,6 +442,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fixture-kit/core@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@fixture-kit/core@npm:1.0.1"
+  dependenciesMeta:
+    oxfmt@0.34.0:
+      unplugged: true
+    oxlint@1.49.0:
+      unplugged: true
+  checksum: 10c0/b7cb1ab603aaaadf3a48132de46df4432895c54fef79a57185ee106f736365b1967ef806e61b6cc167649f34513776bd0ef678bb8d9eac80e031a5c3099f0b64
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -633,6 +645,7 @@ __metadata:
   dependencies:
     "@changesets/changelog-github": "npm:^0.5.2"
     "@changesets/cli": "npm:^2.29.8"
+    "@fixture-kit/core": "npm:^1.0.1"
     "@types/node": "npm:^24.10.0"
     clipanion: "npm:^4.0.0-rc.4"
     cosmiconfig: "npm:^9.0.0"

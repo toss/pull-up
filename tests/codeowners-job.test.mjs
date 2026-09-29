@@ -1,22 +1,34 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+
+import { Fixture } from "@fixture-kit/core";
 
 import { codeownersJob } from "../dist/core/index.mjs";
 
+const fixtureDirectory = fileURLToPath(
+  new URL("./fixtures/repo/", import.meta.url),
+);
+
+async function readFixtureFiles(rootDir, filePaths) {
+  return Promise.all(
+    filePaths.map(async (filePath) => ({
+      path: filePath,
+      contents: await readFile(path.resolve(rootDir, filePath), "utf8"),
+    })),
+  );
+}
+
 test("merges parent CODEOWNERS before nested files", async () => {
-  const rootDir = process.cwd();
+  await using fixture = await Fixture.fromDirectory(fixtureDirectory);
+  const rootDir = fixture.root;
   // Lexical path order places ads-platform/CODEOWNERS before ads/CODEOWNERS.
-  const inputFiles = [
-    {
-      path: path.join(rootDir, "services/ads/ads-platform/CODEOWNERS"),
-      contents: "* @platform-team\n/special/ @special-team\n",
-    },
-    {
-      path: path.join(rootDir, "services/ads/CODEOWNERS"),
-      contents: "* @ads-team\n",
-    },
-  ];
+  const inputFiles = await readFixtureFiles(rootDir, [
+    path.join(rootDir, "services/ads/ads-platform/CODEOWNERS"),
+    path.join(rootDir, "services/ads/CODEOWNERS"),
+  ]);
 
   const result = await codeownersJob().transform(inputFiles, {
     rootDir,
@@ -32,33 +44,16 @@ test("merges parent CODEOWNERS before nested files", async () => {
 });
 
 test("keeps each directory subtree together with parents first", async () => {
-  const rootDir = process.cwd();
-  const inputFiles = [
-    {
-      path: path.join(rootDir, "tools/catalog-cli/CODEOWNERS"),
-      contents: "* @tools-team\n",
-    },
-    {
-      path: path.join(rootDir, "services/auth-cert/CODEOWNERS"),
-      contents: "* @cert-team\n",
-    },
-    {
-      path: path.join(rootDir, "services/auth/login/admin/CODEOWNERS"),
-      contents: "* @admin-team\n",
-    },
-    {
-      path: path.join(rootDir, "services/auth/login/CODEOWNERS"),
-      contents: "* @login-team\n",
-    },
-    {
-      path: path.join(rootDir, "services/auth/CODEOWNERS"),
-      contents: "* @auth-team\n",
-    },
-    {
-      path: path.join(rootDir, "CODEOWNERS"),
-      contents: "* @root-team\n",
-    },
-  ];
+  await using fixture = await Fixture.fromDirectory(fixtureDirectory);
+  const rootDir = fixture.root;
+  const inputFiles = await readFixtureFiles(rootDir, [
+    path.join(rootDir, "tools/catalog-cli/CODEOWNERS"),
+    path.join(rootDir, "services/auth-cert/CODEOWNERS"),
+    path.join(rootDir, "services/auth/login/admin/CODEOWNERS"),
+    path.join(rootDir, "services/auth/login/CODEOWNERS"),
+    path.join(rootDir, "services/auth/CODEOWNERS"),
+    path.join(rootDir, "CODEOWNERS"),
+  ]);
 
   const result = await codeownersJob().transform(inputFiles, {
     rootDir,
@@ -68,6 +63,7 @@ test("keeps each directory subtree together with parents first", async () => {
   assert.equal(
     result,
     "/ @root-team\n" +
+      "/docs/ @docs-team\n" +
       "/services/auth/ @auth-team\n" +
       "/services/auth/login/ @login-team\n" +
       "/services/auth/login/admin/ @admin-team\n" +
@@ -77,25 +73,14 @@ test("keeps each directory subtree together with parents first", async () => {
 });
 
 test("groups nested directories even when their parent has no CODEOWNERS", async () => {
-  const rootDir = process.cwd();
-  const inputFiles = [
-    {
-      path: path.join(rootDir, "tools/catalog-cli/CODEOWNERS"),
-      contents: "* @tools-team\n",
-    },
-    {
-      path: path.join(rootDir, "services/cart/CODEOWNERS"),
-      contents: "* @cart-team\n",
-    },
-    {
-      path: path.join(rootDir, "services/builder/form/CODEOWNERS"),
-      contents: "* @form-team\n",
-    },
-    {
-      path: path.join(rootDir, "services/builder/desktop/CODEOWNERS"),
-      contents: "* @desktop-team\n",
-    },
-  ];
+  await using fixture = await Fixture.fromDirectory(fixtureDirectory);
+  const rootDir = fixture.root;
+  const inputFiles = await readFixtureFiles(rootDir, [
+    path.join(rootDir, "tools/catalog-cli/CODEOWNERS"),
+    path.join(rootDir, "services/cart/CODEOWNERS"),
+    path.join(rootDir, "services/builder/form/CODEOWNERS"),
+    path.join(rootDir, "services/builder/desktop/CODEOWNERS"),
+  ]);
 
   const result = await codeownersJob().transform(inputFiles, {
     rootDir,
@@ -111,27 +96,15 @@ test("groups nested directories even when their parent has no CODEOWNERS", async
   );
 });
 
-test("resolves CODEOWNERS paths against rootDir when running from a subdirectory", async () => {
-  // Treat cwd as a subdirectory of the configured repository root.
-  const rootDir = path.dirname(process.cwd());
-  const inputFiles = [
-    {
-      path: "services/auth/login/CODEOWNERS",
-      contents: "* @login-team\n",
-    },
-    {
-      path: path.join(rootDir, "tools/catalog-cli/CODEOWNERS"),
-      contents: "* @tools-team\n",
-    },
-    {
-      path: "services/auth/CODEOWNERS",
-      contents: "* @auth-team\n",
-    },
-    {
-      path: "CODEOWNERS",
-      contents: "* @root-team\n",
-    },
-  ];
+test("resolves relative and absolute CODEOWNERS paths against rootDir", async () => {
+  await using fixture = await Fixture.fromDirectory(fixtureDirectory);
+  const rootDir = fixture.root;
+  const inputFiles = await readFixtureFiles(rootDir, [
+    "services/auth/login/CODEOWNERS",
+    path.join(rootDir, "tools/catalog-cli/CODEOWNERS"),
+    "services/auth/CODEOWNERS",
+    "CODEOWNERS",
+  ]);
 
   const result = await codeownersJob().transform(inputFiles, {
     rootDir,
@@ -141,9 +114,63 @@ test("resolves CODEOWNERS paths against rootDir when running from a subdirectory
   assert.equal(
     result,
     "/ @root-team\n" +
+      "/docs/ @docs-team\n" +
       "/services/auth/ @auth-team\n" +
       "/services/auth/login/ @login-team\n" +
       "/tools/catalog-cli/ @tools-team\n",
+  );
+});
+
+for (const childPath of [
+  "./services/auth/login/CODEOWNERS",
+  "services/./auth/../../services/auth/login/CODEOWNERS",
+]) {
+  test(`normalizes ${childPath} before ordering parent and child rules`, async () => {
+    await using fixture = await Fixture.fromDirectory(fixtureDirectory);
+    const rootDir = fixture.root;
+    const inputFiles = await readFixtureFiles(rootDir, [
+      childPath,
+      "services/auth/CODEOWNERS",
+    ]);
+
+    const result = await codeownersJob().transform(inputFiles, {
+      rootDir,
+      outputPath: path.join(rootDir, ".github/CODEOWNERS"),
+    });
+
+    assert.equal(
+      result,
+      "/services/auth/ @auth-team\n/services/auth/login/ @login-team\n",
+    );
+  });
+}
+
+test("keeps normalized path aliases stable without mutating the input", async () => {
+  const rootDir = process.cwd();
+  const inputFiles = Object.freeze(
+    [
+      { path: "services/auth/CODEOWNERS", contents: "* @first\n" },
+      {
+        path: path.join(rootDir, "services/auth/CODEOWNERS"),
+        contents: "* @second\n",
+      },
+      {
+        path: "./services/auth/login/../CODEOWNERS",
+        contents: "* @last\n",
+      },
+    ].map((file) => Object.freeze(file)),
+  );
+
+  const result = await codeownersJob().transform(inputFiles, {
+    rootDir,
+    outputPath: path.join(rootDir, ".github/CODEOWNERS"),
+  });
+
+  assert.equal(
+    result,
+    "/services/auth/ @first\n" +
+      "/services/auth/ @second\n" +
+      "/services/auth/ @last\n",
   );
 });
 
