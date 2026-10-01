@@ -9,3 +9,5 @@
 dist
 
 *.tgz
+
+.vitest_cache
