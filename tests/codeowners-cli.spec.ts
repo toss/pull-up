@@ -54,7 +54,7 @@ describe('codeowners-cli', () => {
     expect(sync.stderr).toBe('');
 
     expect(await readFile(path.join(rootDir, '.github/CODEOWNERS'), 'utf8')).toBe(
-      '/ @root-team\n' +
+      '* @root-team\n' +
         '/docs/ @docs-team\n' +
         '/services/ads/ @ads-team\n' +
         '/services/ads/ads-platform/ @platform-team\n' +
@@ -108,5 +108,35 @@ export default [codeownersJob({ input: ${JSON.stringify(scenario.input)} })];
     expect(await readFile(path.join(rootDir, '.github/CODEOWNERS'), 'utf8')).toBe(
       '/services/auth/ @auth-team\n' + '/services/auth/login/ @login-team\n',
     );
+  });
+
+  it('sync preserves unanchored patterns from root and nested CODEOWNERS files', async () => {
+    await using fixture = await Fixture.create({
+      '.git': {},
+      'pullup.config.mjs': config,
+      CODEOWNERS: '*.js @root-team\n',
+      packages: {
+        web: {
+          CODEOWNERS: '*.ts @frontend-team\ndocs/ @docs-team\n/docs/ @local-docs-team\nsrc/*.ts @source-team\n',
+        },
+      },
+    });
+
+    const sync = await execFileAsync(process.execPath, [CLI_PATH, 'sync'], { cwd: fixture.root, timeout: 10_000 });
+
+    expect(sync.stdout).toContain('codeowners synced');
+    expect(sync.stderr).toBe('');
+    expect(await readFile(path.join(fixture.root, '.github/CODEOWNERS'), 'utf8')).toBe(
+      '*.js @root-team\n' +
+        '/packages/web/**/*.ts @frontend-team\n' +
+        '/packages/web/**/docs/ @docs-team\n' +
+        '/packages/web/docs/ @local-docs-team\n' +
+        '/packages/web/src/*.ts @source-team\n',
+    );
+
+    const check = await execFileAsync(process.execPath, [CLI_PATH, 'check'], { cwd: fixture.root, timeout: 10_000 });
+
+    expect(check.stdout).toContain('All files are up to date');
+    expect(check.stderr).toBe('');
   });
 });
