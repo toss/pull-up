@@ -686,7 +686,6 @@ __metadata:
     fast-glob: "npm:^3.3.3"
     find-up: "npm:^8.0.0"
     globals: "npm:^17.0.0"
-    picocolors: "npm:^1.1.1"
     prettier: "npm:^3.8.0"
     tsdown: "npm:^0.19.0"
     typescript: "npm:^5.9.2"

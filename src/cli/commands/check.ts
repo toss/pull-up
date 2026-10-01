@@ -1,5 +1,6 @@
+import { styleText } from 'node:util';
+
 import { Command, Option } from 'clipanion';
-import pc from 'picocolors';
 
 import { resolveConfig } from '../../core/resolve-config';
 import { runJob } from '../../core/run-job';
@@ -27,7 +28,7 @@ export class CheckCommand extends Command {
     const [repoRoot, jobs] = await Promise.all([resolveRepositoryRoot(cwd, this.root), resolveConfig(cwd)]);
 
     if (jobs.length === 0) {
-      console.log(pc.yellow('✘ No jobs found to check'));
+      console.log(styleText('yellow', '✘ No jobs found to check'));
       return;
     }
 
@@ -35,11 +36,11 @@ export class CheckCommand extends Command {
 
     for (const { isSame, jobInfo } of results) {
       if (!isSame) {
-        console.error(pc.red(`✘ ${jobInfo.name} is outdated. Run 'pullup sync' to update.`));
+        console.error(styleText('red', `✘ ${jobInfo.name} is outdated. Run 'pullup sync' to update.`));
         process.exit(1);
       }
     }
 
-    console.log(pc.green('✔ All files are up to date'));
+    console.log(styleText('green', '✔ All files are up to date'));
   }
 }

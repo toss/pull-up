@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { styleText } from 'node:util';
 
 import { Command, Option } from 'clipanion';
-import pc from 'picocolors';
 
 import { resolveConfig } from '../../core/resolve-config';
 import { runJob } from '../../core/run-job';
@@ -36,7 +36,7 @@ export class SyncCommand extends Command {
     const jobs = await resolveConfig(cwd);
 
     if (jobs.length === 0) {
-      console.log(pc.yellow('✘ No jobs found to sync'));
+      console.log(styleText('yellow', '✘ No jobs found to sync'));
       return;
     }
 
@@ -44,13 +44,13 @@ export class SyncCommand extends Command {
 
     for (const { jobInfo, generated, isSame } of results) {
       if (this.dryRun === true) {
-        console.log(pc.cyan(`┌─ [Job] ${jobInfo.name}`));
-        console.log(`${pc.cyan('│')}  ${pc.dim(`Output: ${jobInfo.output}`)}`);
-        console.log(`${pc.cyan('│')}`);
+        console.log(styleText('cyan', `┌─ [Job] ${jobInfo.name}`));
+        console.log(`${styleText('cyan', '│')}  ${styleText('dim', `Output: ${jobInfo.output}`)}`);
+        console.log(`${styleText('cyan', '│')}`);
         generated.contents.split('\n').forEach((line) => {
-          console.log(`${pc.cyan('│')}  ${line}`);
+          console.log(`${styleText('cyan', '│')}  ${line}`);
         });
-        console.log(`${pc.cyan('└─')}`);
+        console.log(`${styleText('cyan', '└─')}`);
         continue;
       }
 
@@ -61,7 +61,7 @@ export class SyncCommand extends Command {
         await fs.writeFile(outputPath, generated.contents);
       }
 
-      console.log(pc.green(`✔ ${jobInfo.name} synced`));
+      console.log(styleText('green', `✔ ${jobInfo.name} synced`));
     }
   }
 }
