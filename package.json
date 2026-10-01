@@ -33,6 +33,8 @@
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
     "dev": "tsdown --watch",
     "prepack": "yarn build",
     "lint": "eslint .",

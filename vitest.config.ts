@@ -5,5 +5,20 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    projects: [
+      {
+        test: {
+          name: 'unit',
+          include: ['src/**/*.spec.ts'],
+        },
+      },
+      {
+        test: {
+          name: 'integration',
+          include: ['tests/**/*.spec.ts'],
+          globalSetup: './tests/build-cli.ts',
+        },
+      },
+    ],
   },
 });
