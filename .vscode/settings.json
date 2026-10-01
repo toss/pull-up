@@ -7,6 +7,12 @@
   },
   "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs",
   "prettier.configPath": ".prettierrc.json",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always",
+    "source.fixAll.ts": "always",
+    "source.organizeImports": "always",
+    "source.removeUnusedImports": "always"
+  },
   "js/ts.tsdk.path": ".yarn/sdks/typescript/lib",
   "eslint.nodePath": ".yarn/sdks"
 }
