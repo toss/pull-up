@@ -1,19 +1,19 @@
-import path from "node:path";
+import path from 'node:path';
 
-import { defineJob } from "../../define-job";
-import type { Source } from "../../types";
-import { Codeowners } from "./codeowners";
+import { defineJob } from '../../define-job';
+import type { Source } from '../../types';
+import { Codeowners } from './codeowners';
 
 interface CodeownersJobOptions {
   output?: string;
   input?: string[];
 }
 
-const DEFAULT_FROM_PATTERN = ["**/CODEOWNERS"];
-const DEFAULT_OUTPUT_PATH = ".github/CODEOWNERS";
+const DEFAULT_FROM_PATTERN = ['**/CODEOWNERS'];
+const DEFAULT_OUTPUT_PATH = '.github/CODEOWNERS';
 
 export const codeownersJob = defineJob((options?: CodeownersJobOptions) => ({
-  name: "codeowners",
+  name: 'codeowners',
   input: options?.input ?? DEFAULT_FROM_PATTERN,
   output: options?.output ?? DEFAULT_OUTPUT_PATH,
   transform: (inputFiles, { rootDir }) => {
@@ -29,7 +29,7 @@ export const codeownersJob = defineJob((options?: CodeownersJobOptions) => ({
     );
 
     if (codeowners.isEmpty()) {
-      return "";
+      return '';
     }
 
     return codeowners.stringify();
@@ -41,17 +41,14 @@ const sortByDirectory = (inputFiles: Source[], rootDir: string) =>
   inputFiles
     .map((file) => {
       // Use the same normalized path for ordering and generated patterns.
-      const relativePath = path.relative(
-        rootDir,
-        path.resolve(rootDir, file.path),
-      );
+      const relativePath = path.relative(rootDir, path.resolve(rootDir, file.path));
       const directoryPath = path.dirname(relativePath);
-      const baseDir = directoryPath === "." ? "" : directoryPath;
+      const baseDir = directoryPath === '.' ? '' : directoryPath;
       return {
         file,
         relativePath,
         baseDir,
-        segments: baseDir === "" ? [] : baseDir.split(path.sep),
+        segments: baseDir === '' ? [] : baseDir.split(path.sep),
       };
     })
     .sort((a, b) => {
@@ -64,15 +61,12 @@ const sortByDirectory = (inputFiles: Source[], rootDir: string) =>
         }
       }
 
-      return (
-        a.segments.length - b.segments.length ||
-        a.relativePath.localeCompare(b.relativePath)
-      );
+      return a.segments.length - b.segments.length || a.relativePath.localeCompare(b.relativePath);
     });
 
 const toAbsolutePattern = (pattern: string, baseDir: string) => {
-  const base = baseDir !== "" ? `/${baseDir}` : "";
-  return pattern === "*" ? `${base}/` : `${base}/${stripLeadingSlash(pattern)}`;
+  const base = baseDir !== '' ? `/${baseDir}` : '';
+  return pattern === '*' ? `${base}/` : `${base}/${stripLeadingSlash(pattern)}`;
 };
 
-const stripLeadingSlash = (text: string) => text.replace(/^\//, "");
+const stripLeadingSlash = (text: string) => text.replace(/^\//, '');

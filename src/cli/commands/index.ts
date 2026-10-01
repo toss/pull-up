@@ -1,2 +1,2 @@
-export * from "./check.js";
-export * from "./sync.js";
+export * from './check.js';
+export * from './sync.js';

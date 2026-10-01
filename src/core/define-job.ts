@@ -1,9 +1,8 @@
-import type { Job } from "./types";
+import type { Job } from './types';
 
-export function defineJob<Args extends any[]>(
-  jobFactory: Job | ((...args: Args) => Job),
-) {
-  if (typeof jobFactory === "function") {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function defineJob<Args extends any[]>(jobFactory: Job | ((...args: Args) => Job)) {
+  if (typeof jobFactory === 'function') {
     return jobFactory;
   }
 

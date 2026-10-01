@@ -19,6 +19,6 @@
     "allowJs": false,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "tsdown.config.ts"],
+  "include": ["**/*.ts"],
   "exclude": ["**/dist/*"]
 }

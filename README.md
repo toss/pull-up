@@ -46,7 +46,7 @@ pnpm add -D @pull-up/cli
 Create a config file in your project root:
 
 ```ts
-import { defineConfig, codeownersJob } from "@pull-up/cli";
+import { defineConfig, codeownersJob } from '@pull-up/cli';
 
 export default defineConfig(codeownersJob());
 // or export default defineConfig([codeownersJob()]);
@@ -60,8 +60,8 @@ Collects `CODEOWNERS` files from your monorepo and merges them into a single fil
 
 ```ts
 codeownersJob({
-  from: ["**/CODEOWNERS"], // default
-  output: ".github/CODEOWNERS", // default
+  from: ['**/CODEOWNERS'], // default
+  output: '.github/CODEOWNERS', // default
 });
 ```
 
@@ -70,12 +70,12 @@ codeownersJob({
 You can define custom jobs using `defineJob`:
 
 ```ts
-import { defineConfig, defineJob } from "@pull-up/cli";
+import { defineConfig, defineJob } from '@pull-up/cli';
 
 const myJob = defineJob({
-  name: "my-job",
-  from: ["packages/*/config.json"],
-  output: "merged-config.json",
+  name: 'my-job',
+  from: ['packages/*/config.json'],
+  output: 'merged-config.json',
   transform: (sources, context) => {
     // sources: array of { path, contents }
     // context: { root, outputPath, existingContents }

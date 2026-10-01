@@ -18,10 +18,7 @@ export interface Job {
   input: string[];
 
   /** Transform the collected files into a new contents. */
-  transform: (
-    inputFiles: Source[],
-    context: TransformContext,
-  ) => Awaitable<string>;
+  transform: (inputFiles: Source[], context: TransformContext) => Awaitable<string>;
 
   /** The path to the output file. */
   output: string;
