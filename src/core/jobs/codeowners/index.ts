@@ -1,1 +1,1 @@
-export * from "./codeowners-job";
+export * from './codeowners-job';

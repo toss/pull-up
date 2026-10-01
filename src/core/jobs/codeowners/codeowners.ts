@@ -8,11 +8,11 @@ export class Codeowners {
 
   static from(content: string): Codeowners {
     const entries = content
-      .split("\n")
+      .split('\n')
       .map((line) => line.trim())
-      .filter((line) => line !== "" && !line.startsWith("#"))
+      .filter((line) => line !== '' && !line.startsWith('#'))
       .map((line) => {
-        const [pattern = "", ...owners] = line.split(/\s+/);
+        const [pattern = '', ...owners] = line.split(/\s+/);
         return { pattern, owners };
       });
 
@@ -32,12 +32,10 @@ export class Codeowners {
   }
 
   stringify(): string {
-    if (this.isEmpty()) return "";
+    if (this.isEmpty()) return '';
 
-    return ensureEoL(
-      this.entries.map((e) => `${e.pattern} ${e.owners.join(" ")}`).join("\n"),
-    );
+    return ensureEoL(this.entries.map((e) => `${e.pattern} ${e.owners.join(' ')}`).join('\n'));
   }
 }
 
-const ensureEoL = (text: string) => (text.endsWith("\n") ? text : text + "\n");
+const ensureEoL = (text: string) => (text.endsWith('\n') ? text : text + '\n');
