@@ -1,5 +1,13 @@
 # @pull-up/cli
 
+## 0.0.7
+
+### Patch Changes
+
+- [#30](https://github.com/toss/pull-up/pull/30) [`4c71914`](https://github.com/toss/pull-up/commit/4c719141e3a0b622b4311c467ce69de6895075bd) Thanks [@ho991217](https://github.com/ho991217)! - Preserve CODEOWNERS pattern scope when merging files. Unanchored patterns such as `*.ts` and `docs/` now match at every depth within their source directory, while anchored patterns and root-level rules retain their meaning.
+
+- [#30](https://github.com/toss/pull-up/pull/30) [`4c71914`](https://github.com/toss/pull-up/commit/4c719141e3a0b622b4311c467ce69de6895075bd) Thanks [@ho991217](https://github.com/ho991217)! - Report output read failures with their file path instead of treating unreadable files as missing. Check no longer suggests syncing on read errors, and sync stops before overwriting any outputs.
+
 ## 0.0.6
 
 ### Patch Changes
