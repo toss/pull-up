@@ -18,6 +18,41 @@ async function readFixtureFiles(rootDir: string, filePaths: string[]) {
 }
 
 describe('codeownersJob', () => {
+  it.each([
+    ['*.ts', '/packages/web/**/*.ts'],
+    ['/*.ts', '/packages/web/*.ts'],
+    ['docs/', '/packages/web/**/docs/'],
+    ['docs', '/packages/web/**/docs'],
+    ['/docs/', '/packages/web/docs/'],
+    ['src/*.ts', '/packages/web/src/*.ts'],
+    ['/src/*.ts', '/packages/web/src/*.ts'],
+    ['src/docs/', '/packages/web/src/docs/'],
+    ['**/docs/', '/packages/web/**/docs/'],
+    ['src/**/index.ts', '/packages/web/src/**/index.ts'],
+    ['*', '/packages/web/'],
+  ])('preserves the scope of %s when relocating a nested CODEOWNERS file', async (pattern, expected) => {
+    const rootDir = process.cwd();
+    const result = await codeownersJob().transform(
+      [{ path: 'packages/web/CODEOWNERS', contents: `${pattern} @frontend-team\n` }],
+      { rootDir, outputPath: path.join(rootDir, '.github/CODEOWNERS') },
+    );
+
+    expect(result).toBe(`${expected} @frontend-team\n`);
+  });
+
+  it.each(['*', '*.ts', '/*.ts', 'docs/', '/docs/', 'src/*.ts', '**/docs/'])(
+    'preserves the root-level pattern %s verbatim',
+    async (pattern) => {
+      const rootDir = process.cwd();
+      const result = await codeownersJob().transform([{ path: 'CODEOWNERS', contents: `${pattern} @root-team\n` }], {
+        rootDir,
+        outputPath: path.join(rootDir, '.github/CODEOWNERS'),
+      });
+
+      expect(result).toBe(`${pattern} @root-team\n`);
+    },
+  );
+
   it('merges parent CODEOWNERS before nested files', async () => {
     await using fixture = await Fixture.fromDirectory(fixtureDirectory);
     const rootDir = fixture.root;
@@ -57,7 +92,7 @@ describe('codeownersJob', () => {
     });
 
     expect(result).toBe(
-      '/ @root-team\n' +
+      '* @root-team\n' +
         '/docs/ @docs-team\n' +
         '/services/auth/ @auth-team\n' +
         '/services/auth/login/ @login-team\n' +
@@ -106,7 +141,7 @@ describe('codeownersJob', () => {
     });
 
     expect(result).toBe(
-      '/ @root-team\n' +
+      '* @root-team\n' +
         '/docs/ @docs-team\n' +
         '/services/auth/ @auth-team\n' +
         '/services/auth/login/ @login-team\n' +

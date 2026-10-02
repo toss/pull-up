@@ -65,8 +65,14 @@ const sortByDirectory = (inputFiles: Source[], rootDir: string) =>
     });
 
 const toAbsolutePattern = (pattern: string, baseDir: string) => {
-  const base = baseDir !== '' ? `/${baseDir}` : '';
-  return pattern === '*' ? `${base}/` : `${base}/${stripLeadingSlash(pattern)}`;
+  if (baseDir === '') return pattern;
+
+  const base = `/${baseDir}`;
+  if (pattern === '*') return `${base}/`;
+
+  // Only a leading or interior slash anchors a pattern; a trailing slash marks a directory.
+  const isAnchored = pattern.startsWith('/') || pattern.replace(/\/$/, '').includes('/');
+  return isAnchored ? `${base}/${stripLeadingSlash(pattern)}` : `${base}/**/${pattern}`;
 };
 
 const stripLeadingSlash = (text: string) => text.replace(/^\//, '');
