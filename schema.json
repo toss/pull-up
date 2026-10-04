@@ -4,7 +4,14 @@
     "jobs": {
       "type": "object",
       "propertyNames": {
-        "type": "string"
+        "type": "string",
+        "not": {
+          "enum": [
+            "constructor",
+            "prototype",
+            "__proto__"
+          ]
+        }
       },
       "additionalProperties": {
         "type": "object",

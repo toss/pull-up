@@ -23,8 +23,16 @@ describe('ConfigSchema', () => {
     expect(v.parse(ConfigSchema, config)).toEqual(config);
   });
 
+  it.each(['constructor-job', 'prototype-job', '__proto__-job', 'toString'])('accepts job key %s', (key) => {
+    const config = { jobs: { [key]: { type: 'codeowners' } } };
+
+    expect(v.parse(ConfigSchema, config)).toEqual(config);
+  });
+
   it.each([
     { name: 'missing jobs', config: {} },
+    { name: 'null jobs', config: { jobs: null } },
+    { name: 'scalar jobs', config: { jobs: 'owners' } },
     { name: 'an empty jobs array', config: { jobs: [] } },
     { name: 'a non-empty jobs array', config: { jobs: [{ type: 'codeowners' }] } },
     { name: 'a missing job type', config: { jobs: { owners: {} } } },
@@ -40,5 +48,17 @@ describe('ConfigSchema', () => {
     },
   ])('rejects $name', ({ config }) => {
     expect(v.safeParse(ConfigSchema, config).success).toBe(false);
+  });
+
+  describe.each(['constructor', 'prototype', '__proto__'])('job key %s', (key) => {
+    it.each([
+      { name: 'a valid job', job: { type: 'codeowners' } },
+      { name: 'an invalid job', job: { type: 'unsupported', input: 123 } },
+    ])('rejects $name instead of discarding it', ({ job }) => {
+      const result = v.safeParse(ConfigSchema, { jobs: { owners: { type: 'codeowners' }, [key]: job } });
+
+      expect(result.success).toBe(false);
+      expect(result.issues?.[0].message).toBe('jobs must not use constructor, prototype, or __proto__ as keys.');
+    });
   });
 });

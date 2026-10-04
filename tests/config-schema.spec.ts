@@ -9,6 +9,10 @@ describe('generated config schema', () => {
       properties: {
         jobs: {
           type: 'object',
+          propertyNames: {
+            type: 'string',
+            not: { enum: ['constructor', 'prototype', '__proto__'] },
+          },
           additionalProperties: {
             type: 'object',
             properties: {

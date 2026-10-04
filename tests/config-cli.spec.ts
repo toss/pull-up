@@ -83,6 +83,35 @@ describe('YAML config CLI', () => {
       expect(await readFile(path.join(fixture.root, '.github/CODEOWNERS'), 'utf8')).toBe(existingContents);
     });
 
+    it.each(
+      ['constructor', 'prototype', '__proto__'].flatMap((key) => [
+        {
+          name: `a ${key} job`,
+          config: `jobs:\n  ${key}:\n    type: codeowners\n`,
+        },
+        {
+          name: `a ${key} job alongside an owners job`,
+          config: `jobs:\n  owners:\n    type: codeowners\n    output: .github/CODEOWNERS\n  ${key}:\n    type: codeowners\n`,
+        },
+      ]),
+    )('rejects $name without changing the output', async (scenario) => {
+      await using fixture = await Fixture.create({
+        '.git': {},
+        'pullup.yml': scenario.config,
+        '.github': { CODEOWNERS: existingContents },
+        CODEOWNERS: '* @source-team\n',
+      });
+
+      const result = await runCli(command, fixture.root);
+      const output = result.stdout + result.stderr;
+
+      expect(result.code).toBe(1);
+      expect(output).toContain('jobs must not use constructor, prototype, or __proto__ as keys.');
+      expect(output).not.toContain('synced');
+      expect(output).not.toContain('All files are up to date');
+      expect(await readFile(path.join(fixture.root, '.github/CODEOWNERS'), 'utf8')).toBe(existingContents);
+    });
+
     it('succeeds without a config and leaves the output unchanged', async () => {
       await using fixture = await Fixture.create({
         '.git': {},

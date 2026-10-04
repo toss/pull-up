@@ -1,5 +1,7 @@
 import * as v from 'valibot';
 
+const JobKeySchema = v.pipe(v.string(), v.notValues(['constructor', 'prototype', '__proto__']));
+
 const CodeownersJobSchema = v.strictObject({
   type: v.literal('codeowners'),
   input: v.pipe(
@@ -17,9 +19,15 @@ const CodeownersJobSchema = v.strictObject({
 
 export const ConfigSchema = v.strictObject({
   jobs: v.pipe(
-    v.unknown(),
-    v.check((input) => !Array.isArray(input), 'jobs must be an object.'),
-    v.record(v.string(), CodeownersJobSchema),
+    v.custom<Record<string, unknown>>(
+      (input) => input !== null && typeof input === 'object' && !Array.isArray(input),
+      'jobs must be an object.',
+    ),
+    v.check(
+      (jobs) => Object.keys(jobs).every((key) => v.is(JobKeySchema, key)),
+      'jobs must not use constructor, prototype, or __proto__ as keys.',
+    ),
+    v.record(JobKeySchema, CodeownersJobSchema),
   ),
 });
 
