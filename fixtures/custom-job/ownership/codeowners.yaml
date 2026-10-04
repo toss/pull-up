@@ -1,0 +1,12 @@
+people:
+  alice:
+    github: alice-dev
+  bob:
+    github: bob-dev
+  carol:
+    github: carol-dev
+teams:
+  platform:
+    members:
+      - bob
+      - alice

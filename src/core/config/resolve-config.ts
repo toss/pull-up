@@ -4,6 +4,7 @@ import { cosmiconfig, getDefaultSearchPlaces } from 'cosmiconfig';
 import * as v from 'valibot';
 
 import { codeownersJob } from '../jobs';
+import { customJob } from '../jobs/custom-job';
 import type { Job } from '../types';
 import { type Config, ConfigSchema } from './schema';
 
@@ -29,8 +30,8 @@ function toJobs(config: Config): Job[] {
     switch (job.type) {
       case 'codeowners':
         return codeownersJob({ input: job.input, output: job.output });
-      default:
-        throw new Error(`Unknown job type: ${job.type}`);
+      case 'custom':
+        return customJob({ input: job.input, output: job.output, command: job.command });
     }
   });
 }

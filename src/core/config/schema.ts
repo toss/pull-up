@@ -17,6 +17,30 @@ const CodeownersJobSchema = v.strictObject({
   ),
 });
 
+const CustomJobSchema = v.strictObject({
+  type: v.literal('custom'),
+  command: v.pipe(
+    v.string(),
+    v.minLength(1),
+    v.metadata({
+      description: 'The command to run for the custom job',
+      examples: ['node scripts/generate-codeowners.js', 'python scripts/generate-codeowners.py'],
+    }),
+  ),
+  input: v.pipe(
+    v.optional(v.array(v.string())),
+    v.metadata({ description: 'Input file paths for the job', examples: [['**/CODEOWNERS', '!**/fixtures/**']] }),
+  ),
+  output: v.pipe(
+    v.string(),
+    v.nonEmpty(),
+    v.metadata({
+      description: 'Output file path for the job',
+      examples: ['CODEOWNERS', '.github/CODEOWNERS', 'docs/CODEOWNERS'],
+    }),
+  ),
+});
+
 export const ConfigSchema = v.strictObject({
   jobs: v.pipe(
     v.custom<Record<string, unknown>>(
@@ -27,7 +51,7 @@ export const ConfigSchema = v.strictObject({
       (jobs) => Object.keys(jobs).every((key) => v.is(JobKeySchema, key)),
       'jobs must not use constructor, prototype, or __proto__ as keys.',
     ),
-    v.record(JobKeySchema, CodeownersJobSchema),
+    v.record(JobKeySchema, v.union([CodeownersJobSchema, CustomJobSchema])),
   ),
 });
 

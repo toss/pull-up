@@ -65,6 +65,7 @@
   "dependencies": {
     "clipanion": "^4.0.0-rc.4",
     "cosmiconfig": "^9.0.0",
+    "execa": "^10.0.1",
     "fast-glob": "^3.3.3",
     "find-up": "^8.0.0",
     "valibot": "^1.5.0"
