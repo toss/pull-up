@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-export const CodeownersJobSchema = v.strictObject({
+const CodeownersJobSchema = v.strictObject({
   type: v.literal('codeowners'),
   input: v.pipe(
     v.optional(v.array(v.string())),
@@ -23,5 +23,4 @@ export const ConfigSchema = v.strictObject({
   ),
 });
 
-export type CodeownersJob = v.InferOutput<typeof CodeownersJobSchema>;
 export type Config = v.InferOutput<typeof ConfigSchema>;
