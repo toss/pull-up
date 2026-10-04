@@ -1,9 +1,8 @@
 import { styleText } from 'node:util';
 
 import { Command, Option } from 'clipanion';
-import * as v from 'valibot';
 
-import { resolveConfig } from '../../core';
+import { resolveConfig } from '../../core/config/resolve-config';
 import { runJob } from '../../core/run-job';
 import { resolveRepositoryRoot } from '../utils';
 
@@ -25,33 +24,23 @@ export class CheckCommand extends Command {
   });
 
   async execute() {
-    try {
-      const cwd = this.cwd ?? process.cwd();
-      const [repoRoot, jobs] = await Promise.all([resolveRepositoryRoot(cwd, this.root), resolveConfig(cwd)]);
+    const cwd = this.cwd ?? process.cwd();
+    const [repoRoot, jobs] = await Promise.all([resolveRepositoryRoot(cwd, this.root), resolveConfig(cwd)]);
 
-      if (jobs.length === 0) {
-        console.log(styleText('yellow', '✘ No jobs found to check'));
-        return;
-      }
-
-      const results = await Promise.all(jobs.map((job) => runJob(job, repoRoot)));
-
-      for (const { isSame, jobInfo } of results) {
-        if (!isSame) {
-          console.error(styleText('red', `✘ ${jobInfo.name} is outdated. Run 'pullup sync' to update.`));
-          process.exit(1);
-        }
-      }
-
-      console.log(styleText('green', '✔ All files are up to date'));
-      return 0;
-    } catch (error) {
-      if (v.isValiError(error)) {
-        console.error(styleText('red', v.summarize(error.issues)));
-        return 1;
-      }
-      console.error(styleText('red', `✘ Error occurred while checking: ${error}`));
-      return 1;
+    if (jobs.length === 0) {
+      console.log(styleText('yellow', '✘ No jobs found to check'));
+      return;
     }
+
+    const results = await Promise.all(jobs.map((job) => runJob(job, repoRoot)));
+
+    for (const { isSame, jobInfo } of results) {
+      if (!isSame) {
+        console.error(styleText('red', `✘ ${jobInfo.name} is outdated. Run 'pullup sync' to update.`));
+        process.exit(1);
+      }
+    }
+
+    console.log(styleText('green', '✔ All files are up to date'));
   }
 }

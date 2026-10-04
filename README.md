@@ -51,7 +51,7 @@ jobs:
     type: codeowners
 ```
 
-`jobs` maps job identifiers to their settings. Configuration is validated before jobs run; invalid settings cause the command to exit with code 1.
+`jobs` maps job identifiers to their settings. YAML configuration is validated before jobs run; invalid settings cause the command to exit with code 1.
 
 `pullup.yaml` is searched before `pullup.yml`.
 
@@ -89,11 +89,9 @@ The package includes `schema.json` for autocomplete and validation in editors th
 
 The path is relative to the YAML file. For Yarn Plug'n'Play or a remote schema, use `https://unpkg.com/@pull-up/cli@<version>/schema.json`, replacing `<version>` with your installed package version.
 
-### Legacy JavaScript and TypeScript Configuration
+### JavaScript and TypeScript Configuration
 
-Existing `pullup.config.ts`, `pullup.config.js`, `pullup.config.cjs`, `pullup.config.mjs`, `.pulluprc.js`, and `.pulluprc.cjs` files remain supported with a deprecation warning.
-
-For example, in `pullup.config.ts`:
+Use `pullup.config.ts`, `pullup.config.js`, `pullup.config.cjs`, or `pullup.config.mjs` for a JavaScript or TypeScript configuration:
 
 ```ts
 import { defineConfig, codeownersJob } from '@pull-up/cli';
@@ -101,7 +99,7 @@ import { defineConfig, codeownersJob } from '@pull-up/cli';
 export default defineConfig(codeownersJob());
 ```
 
-YAML and legacy configuration files cannot coexist. Configuration in the `package.json` `pullup` field is no longer supported.
+The `package.json` `pullup` field and `.pulluprc` files are also supported. These formats are searched before `pullup.yaml` and `pullup.yml`.
 
 #### Custom Jobs
 

@@ -18,20 +18,33 @@
               "type": "string"
             },
             "description": "Input file paths for the job",
-            "examples": [["**/CODEOWNERS", "!**/fixtures/**"]]
+            "examples": [
+              [
+                "**/CODEOWNERS",
+                "!**/fixtures/**"
+              ]
+            ]
           },
           "output": {
             "type": "string",
             "description": "Output file path for the job",
-            "examples": ["CODEOWNERS", ".github/CODEOWNERS", "docs/CODEOWNERS"]
+            "examples": [
+              "CODEOWNERS",
+              ".github/CODEOWNERS",
+              "docs/CODEOWNERS"
+            ]
           }
         },
-        "required": ["type"],
+        "required": [
+          "type"
+        ],
         "additionalProperties": false
       }
     }
   },
-  "required": ["jobs"],
+  "required": [
+    "jobs"
+  ],
   "additionalProperties": false,
   "$schema": "http://json-schema.org/draft-07/schema#"
 }
