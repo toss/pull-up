@@ -27,6 +27,8 @@ export default defineConfig([
     entry: 'src/core/index.ts',
     dts: true,
     outDir: 'dist/core',
-    onSuccess: generateSchema,
+    hooks: {
+      'build:done': generateSchema,
+    },
   },
 ]);
