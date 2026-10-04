@@ -13,17 +13,14 @@ export const customJob = defineJob((options: CustomJobOptions) => ({
   input: options.input ?? [],
   output: options.output,
   transform: async (inputFiles, context) => {
-    const subprocess = execa('sh', ['-c', options.command], {
+    const { stdout } = await execa('sh', ['-c', options.command], {
       cwd: context.rootDir,
       input: JSON.stringify({ sources: inputFiles, context }),
       stripFinalNewline: false,
       maxBuffer: Infinity,
-    });
-    subprocess.stdin?.once('error', (error: Error) => {
-      subprocess.kill('SIGKILL', error);
+      killDescendants: true,
     });
 
-    const { stdout } = await subprocess;
     return stdout;
   },
 }));
