@@ -43,48 +43,86 @@ pnpm add -D @pull-up/cli
 
 ## Configuration
 
-Create a config file in your project root:
+Create `pullup.yml` or `pullup.yaml` in your project root:
+
+```yaml
+jobs:
+  codeowners:
+    type: codeowners
+```
+
+`jobs` maps job identifiers to their settings. Configuration is validated before jobs run; invalid settings cause the command to exit with code 1.
+
+`pullup.yaml` is searched before `pullup.yml`.
+
+### Built-in Jobs
+
+#### `codeowners`
+
+Collects `CODEOWNERS` files from your monorepo and merges them into a single file.
+
+```yaml
+jobs:
+  codeowners:
+    type: codeowners
+    input:
+      - '**/CODEOWNERS'
+      - '!**/fixtures/**'
+    output: .github/CODEOWNERS
+```
+
+| Field    | Type         | Required | Default              |
+| -------- | ------------ | -------- | -------------------- |
+| `type`   | `codeowners` | Yes      |                      |
+| `input`  | `string[]`   | No       | `['**/CODEOWNERS']`  |
+| `output` | `string`     | No       | `.github/CODEOWNERS` |
+
+Input patterns and the output path are relative to the repository root. Prefix an input pattern with `!` to exclude matching files. The output file is automatically excluded from the input.
+
+### Editor Support
+
+The package includes `schema.json` for autocomplete and validation in editors that support YAML Language Server. In VS Code, install the [YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) and add this line at the top of your config:
+
+```yaml
+# yaml-language-server: $schema=./node_modules/@pull-up/cli/schema.json
+```
+
+The path is relative to the YAML file. For Yarn Plug'n'Play or a remote schema, use `https://unpkg.com/@pull-up/cli@<version>/schema.json`, replacing `<version>` with your installed package version.
+
+### Legacy JavaScript and TypeScript Configuration
+
+Existing `pullup.config.ts`, `pullup.config.js`, `pullup.config.cjs`, `pullup.config.mjs`, `.pulluprc.js`, and `.pulluprc.cjs` files remain supported with a deprecation warning.
+
+For example, in `pullup.config.ts`:
 
 ```ts
 import { defineConfig, codeownersJob } from '@pull-up/cli';
 
 export default defineConfig(codeownersJob());
-// or export default defineConfig([codeownersJob()]);
 ```
 
-### Built-in Jobs
+YAML and legacy configuration files cannot coexist. Configuration in the `package.json` `pullup` field is no longer supported.
 
-#### `codeownersJob`
+#### Custom Jobs
 
-Collects `CODEOWNERS` files from your monorepo and merges them into a single file.
-
-```ts
-codeownersJob({
-  from: ['**/CODEOWNERS'], // default
-  output: '.github/CODEOWNERS', // default
-});
-```
-
-### Custom Jobs
-
-You can define custom jobs using `defineJob`:
+YAML currently supports built-in jobs only. To define a custom job, use `defineJob` in a JavaScript or TypeScript config:
 
 ```ts
 import { defineConfig, defineJob } from '@pull-up/cli';
 
 const myJob = defineJob({
   name: 'my-job',
-  from: ['packages/*/config.json'],
+  input: ['packages/*/config.json'],
   output: 'merged-config.json',
-  transform: (sources, context) => {
-    // sources: array of { path, contents }
-    // context: { root, outputPath, existingContents }
+  transform: (sources) => {
     return JSON.stringify(sources.map((s) => JSON.parse(s.contents)));
   },
 });
 
 export default defineConfig([myJob()]);
 ```
+
+Transform functions receive source files as `{ path, contents }` objects and a context containing `rootDir` and `outputPath`. They can return a string or a promise of a string.
 
 ## Usage
 
