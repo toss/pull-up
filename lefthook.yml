@@ -4,6 +4,6 @@ pre-commit:
   commands:
     format:
       run: yarn prettier {staged_files} --write
-      glob: '**/*.{js,ts,json}'
+      glob: '**/*.{js,mjs,cjs,ts,json}'
       stage_fixed: true
       exclude: 'lefthook.yml'
