@@ -678,6 +678,7 @@ __metadata:
     "@eslint/js": "npm:^9.39.2"
     "@fixture-kit/core": "npm:^1.0.1"
     "@types/node": "npm:^24.10.0"
+    "@valibot/to-json-schema": "npm:^1.8.0"
     clipanion: "npm:^4.0.0-rc.4"
     cosmiconfig: "npm:^9.0.0"
     eslint: "npm:^9.7.0"
@@ -690,6 +691,7 @@ __metadata:
     tsdown: "npm:^0.19.0"
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.27.0"
+    valibot: "npm:^1.5.0"
     vite: "npm:^8.3.1"
     vitest: "npm:^5.0.2"
   bin:
@@ -1348,6 +1350,15 @@ __metadata:
   version: 1.11.1
   resolution: "@unrs/resolver-binding-win32-x64-msvc@npm:1.11.1"
   conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@valibot/to-json-schema@npm:^1.8.0":
+  version: 1.8.0
+  resolution: "@valibot/to-json-schema@npm:1.8.0"
+  peerDependencies:
+    valibot: ^1.5.0
+  checksum: 10c0/8206940f4b892a34c2d78448541de926234bd97741ad72f4b75ce22bbe56172e46492d02efaf71d75cfc71cec6fa0c55d2edbd977aa4fd2cb2dc236f87005c04
   languageName: node
   linkType: hard
 
@@ -3726,6 +3737,18 @@ __metadata:
   dependencies:
     punycode: "npm:^2.1.0"
   checksum: 10c0/4ef57b45aa820d7ac6496e9208559986c665e49447cb072744c13b66925a362d96dd5a46c4530a6b8e203e5db5fe849369444440cb22ecfc26c679359e5dfa3c
+  languageName: node
+  linkType: hard
+
+"valibot@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "valibot@npm:1.5.0"
+  peerDependencies:
+    typescript: ">=5"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10c0/d49dab2b2fcbb477c894def73466de598b602859a47ab92b26d387c4d2a472cbfd4ef57b49eea91aeeff143c38f5a9523914dc5a73469ec93c7cfd4326eb5fbf
   languageName: node
   linkType: hard
 

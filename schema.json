@@ -1,0 +1,57 @@
+{
+  "type": "object",
+  "properties": {
+    "jobs": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "not": {
+          "enum": [
+            "constructor",
+            "prototype",
+            "__proto__"
+          ]
+        }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "codeowners"
+          },
+          "input": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Input file paths for the job",
+            "examples": [
+              [
+                "**/CODEOWNERS",
+                "!**/fixtures/**"
+              ]
+            ]
+          },
+          "output": {
+            "type": "string",
+            "description": "Output file path for the job",
+            "examples": [
+              "CODEOWNERS",
+              ".github/CODEOWNERS",
+              "docs/CODEOWNERS"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "jobs"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
