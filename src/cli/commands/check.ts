@@ -2,7 +2,7 @@ import { styleText } from 'node:util';
 
 import { Command, Option } from 'clipanion';
 
-import { resolveConfig } from '../../core/resolve-config';
+import { resolveConfig } from '../../core/config/resolve-config';
 import { runJob } from '../../core/run-job';
 import { resolveRepositoryRoot } from '../utils';
 

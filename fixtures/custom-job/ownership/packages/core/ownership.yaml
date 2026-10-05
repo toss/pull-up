@@ -1,0 +1,14 @@
+owners:
+  teams:
+    - platform
+  people:
+    - alice
+rules:
+  - path: feature/details/
+    owners:
+      people:
+        - bob
+  - path: feature/
+    owners:
+      people:
+        - carol

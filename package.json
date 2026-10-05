@@ -28,7 +28,8 @@
     "url": "git+https://github.com/toss/pull-up.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "schema.json"
   ],
   "scripts": {
     "build": "tsdown",
@@ -49,6 +50,7 @@
     "@eslint/js": "^9.39.2",
     "@fixture-kit/core": "^1.0.1",
     "@types/node": "^24.10.0",
+    "@valibot/to-json-schema": "^1.8.0",
     "eslint": "^9.7.0",
     "eslint-plugin-import-x": "^4.0.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
@@ -63,8 +65,10 @@
   "dependencies": {
     "clipanion": "^4.0.0-rc.4",
     "cosmiconfig": "^9.0.0",
+    "execa": "^10.0.1",
     "fast-glob": "^3.3.3",
-    "find-up": "^8.0.0"
+    "find-up": "^8.0.0",
+    "valibot": "^1.5.0"
   },
   "engines": {
     "node": ">=22.8.0"
