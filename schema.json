@@ -14,38 +14,88 @@
         }
       },
       "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "const": "codeowners"
-          },
-          "input": {
-            "type": "array",
-            "items": {
-              "type": "string"
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "codeowners"
+              },
+              "input": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Input file paths for the job",
+                "examples": [
+                  [
+                    "**/CODEOWNERS",
+                    "!**/fixtures/**"
+                  ]
+                ]
+              },
+              "output": {
+                "type": "string",
+                "description": "Output file path for the job",
+                "examples": [
+                  "CODEOWNERS",
+                  ".github/CODEOWNERS",
+                  "docs/CODEOWNERS"
+                ]
+              }
             },
-            "description": "Input file paths for the job",
-            "examples": [
-              [
-                "**/CODEOWNERS",
-                "!**/fixtures/**"
-              ]
-            ]
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
           },
-          "output": {
-            "type": "string",
-            "description": "Output file path for the job",
-            "examples": [
-              "CODEOWNERS",
-              ".github/CODEOWNERS",
-              "docs/CODEOWNERS"
-            ]
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "custom"
+              },
+              "command": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The command to run for the custom job",
+                "examples": [
+                  "node scripts/generate-codeowners.js",
+                  "python scripts/generate-codeowners.py"
+                ]
+              },
+              "input": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Input file paths for the job",
+                "examples": [
+                  [
+                    "**/CODEOWNERS",
+                    "!**/fixtures/**"
+                  ]
+                ]
+              },
+              "output": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Output file path for the job",
+                "examples": [
+                  "CODEOWNERS",
+                  ".github/CODEOWNERS",
+                  "docs/CODEOWNERS"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "command",
+              "output"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "type"
-        ],
-        "additionalProperties": false
+        ]
       }
     }
   },
