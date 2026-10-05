@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { styleText } from 'node:util';
 
 import { cosmiconfig, getDefaultSearchPlaces } from 'cosmiconfig';
 import * as v from 'valibot';
@@ -24,11 +25,15 @@ export async function resolveConfig(cwd: string): Promise<Job[]> {
 
   if (['.js', '.ts', '.cjs', '.mjs'].includes(path.extname(result.filepath))) {
     console.warn(
-      [
-        `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${result.filepath}`,
-        'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.',
-        'Migration guide: https://github.com/toss/pull-up#migration',
-      ].join('\n'),
+      styleText(
+        'yellow',
+        [
+          `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${result.filepath}`,
+          'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.',
+          'Migration guide: https://github.com/toss/pull-up#migration',
+          '',
+        ].join('\n'),
+      ),
     );
   }
 
