@@ -3,10 +3,11 @@ name: Release or create version bump
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
-    if: github.repository == 'toss/pull-up'
+    if: github.repository == 'toss/pull-up' && github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -27,3 +28,43 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+
+  canary:
+    name: Publish canary
+    if: github.repository == 'toss/pull-up' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-canary
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@v3
+      - run: yarn install --immutable
+      - run: yarn lint
+      - run: yarn format:check
+      - run: yarn test
+      - run: yarn typecheck
+      - name: Create canary version
+        run: |
+          yarn changeset version --snapshot canary --snapshot-prerelease-template "{tag}.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"
+          version=$(node -p "require('./package.json').version")
+          case "$version" in
+            *"-canary.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}") ;;
+            *) echo "::error::No canary version was calculated. Add a changeset before publishing."; exit 1 ;;
+          esac
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish canary to npm
+        run: npm publish --tag canary --access public
+        env:
+          NPM_CONFIG_PROVENANCE: true
+      - name: Show install command
+        run: |
+          version=$(node -p "require('./package.json').version")
+          printf 'Run this canary:\n\n    npx @pull-up/cli@%s --help\n' "$version" >> "$GITHUB_STEP_SUMMARY"
