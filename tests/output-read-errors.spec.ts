@@ -21,7 +21,7 @@ function scriptConfigWarning(rootDir: string) {
   return (
     `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${path.join(rootDir, 'pullup.config.mjs')}\n` +
     'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.\n' +
-    'Migration guide: https://github.com/toss/pull-up#migration\n'
+    'Migration guide: https://github.com/toss/pull-up#migration\n\n'
   );
 }
 

@@ -17,7 +17,7 @@ function expectScriptConfigWarning(result: { stdout: string; stderr: string }, c
   expect(result.stderr).toBe(
     `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${configPath}\n` +
       'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.\n' +
-      'Migration guide: https://github.com/toss/pull-up#migration\n',
+      'Migration guide: https://github.com/toss/pull-up#migration\n\n',
   );
   expect(result.stderr.match(/\[DEPRECATED\]/g)).toHaveLength(1);
   expect(result.stdout).not.toContain('[DEPRECATED]');
