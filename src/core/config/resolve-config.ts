@@ -1,43 +1,35 @@
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { styleText } from 'node:util';
 
-import { cosmiconfig, getDefaultSearchPlaces } from 'cosmiconfig';
+import { findUp } from 'find-up';
+import { load } from 'js-yaml';
 import * as v from 'valibot';
 
-import { codeownersJob } from '../jobs';
+import { codeownersJob } from '../jobs/codeowners/codeowners-job';
 import { customJob } from '../jobs/custom-job';
 import type { Job } from '../types';
 import { type Config, ConfigSchema } from './schema';
 
 export async function resolveConfig(cwd: string): Promise<Job[]> {
-  const explorer = cosmiconfig('pullup', {
-    searchPlaces: [...getDefaultSearchPlaces('pullup'), 'pullup.yaml', 'pullup.yml'],
-  });
-  const result = await explorer.search(cwd);
+  let config: unknown;
+  const filepath = await findUp(
+    async (directory) => {
+      for (const filename of ['pullup.yaml', 'pullup.yml']) {
+        const configPath = path.join(directory, filename);
+        try {
+          config = load(await readFile(configPath, 'utf8'), { filename: configPath });
+        } catch (error) {
+          if (['ENOENT', 'EISDIR', 'ENOTDIR', 'EACCES'].includes((error as NodeJS.ErrnoException).code ?? '')) continue;
+          throw error;
+        }
+        if (config !== undefined && config !== null) return filename;
+      }
+      return undefined;
+    },
+    { cwd },
+  );
 
-  if (result == null) {
-    return [];
-  }
-
-  if (['pullup.yaml', 'pullup.yml'].includes(path.basename(result.filepath))) {
-    return toJobs(v.parse(ConfigSchema, result.config));
-  }
-
-  if (['.js', '.ts', '.cjs', '.mjs'].includes(path.extname(result.filepath))) {
-    console.warn(
-      styleText(
-        'yellow',
-        [
-          `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${result.filepath}`,
-          'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.',
-          'Migration guide: https://github.com/toss/pull-up#migration',
-          '',
-        ].join('\n'),
-      ),
-    );
-  }
-
-  return result.config as Job[];
+  return filepath === undefined ? [] : toJobs(v.parse(ConfigSchema, config));
 }
 
 function toJobs(config: Config): Job[] {

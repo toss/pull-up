@@ -14,21 +14,18 @@ async function generateSchema() {
   await writeFile('./schema.json', `${JSON.stringify(schema, null, 2)}\n`);
 }
 
-export default defineConfig([
-  {
-    entry: 'src/cli/index.ts',
-    banner: '#!/usr/bin/env node',
-    dts: false,
-    minify: true,
-    noExternal: ['clipanion', 'picocolors'],
-    outDir: 'dist/bin',
+export default defineConfig({
+  entry: 'src/cli/index.ts',
+  banner: '#!/usr/bin/env node',
+  dts: false,
+  minify: true,
+  outputOptions: { keepNames: true },
+  outDir: 'dist/bin',
+  exe: {
+    fileName: `pullup-${process.platform}-${process.arch}`,
+    outDir: 'build',
   },
-  {
-    entry: 'src/core/index.ts',
-    dts: true,
-    outDir: 'dist/core',
-    hooks: {
-      'build:done': generateSchema,
-    },
+  hooks: {
+    'build:done': generateSchema,
   },
-]);
+});

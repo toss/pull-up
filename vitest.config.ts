@@ -17,6 +17,15 @@ export default defineConfig({
           name: 'integration',
           include: ['tests/**/*.spec.ts'],
           globalSetup: './tests/build-cli.ts',
+          testTimeout: 30_000,
+        },
+      },
+      {
+        test: {
+          name: 'exe',
+          include: ['tests/cli/**/*.spec.ts'],
+          globalSetup: './tests/build-cli.ts',
+          testTimeout: 30_000,
         },
       },
     ],

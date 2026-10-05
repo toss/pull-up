@@ -5,13 +5,6 @@
   "bin": {
     "pullup": "./dist/bin/index.mjs"
   },
-  "main": "./dist/core/index.mjs",
-  "exports": {
-    ".": {
-      "types": "./dist/core/index.d.mts",
-      "import": "./dist/core/index.mjs"
-    }
-  },
   "author": "Hoyeon Lee <hoyeon@toss.im>",
   "bugs": "https://github.com/toss/pull-up/issues",
   "keywords": [
@@ -28,15 +21,16 @@
     "url": "git+https://github.com/toss/pull-up.git"
   },
   "files": [
-    "dist",
-    "schema.json"
+    "dist/bin/**",
+    "./schema.json"
   ],
   "scripts": {
     "build": "tsdown",
-    "test": "vitest run",
+    "test": "vitest run --project unit --project integration",
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
-    "dev": "tsdown --watch",
+    "test:exe": "vitest run --project exe",
+    "dev": "tsdown --watch --no-exe",
     "prepack": "yarn build",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -49,26 +43,25 @@
     "@changesets/cli": "^2.29.8",
     "@eslint/js": "^9.39.2",
     "@fixture-kit/core": "^1.0.1",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.10.0",
     "@valibot/to-json-schema": "^1.8.0",
+    "clipanion": "^4.0.0-rc.4",
     "eslint": "^9.7.0",
     "eslint-plugin-import-x": "^4.0.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "globals": "^17.0.0",
-    "prettier": "^3.8.0",
-    "tsdown": "^0.19.0",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.27.0",
-    "vite": "^8.3.1",
-    "vitest": "^5.0.2"
-  },
-  "dependencies": {
-    "clipanion": "^4.0.0-rc.4",
-    "cosmiconfig": "^9.0.0",
     "execa": "^10.0.1",
     "fast-glob": "^3.3.3",
     "find-up": "^8.0.0",
-    "valibot": "^1.5.0"
+    "globals": "^17.0.0",
+    "js-yaml": "^4.1.1",
+    "prettier": "^3.8.0",
+    "tsdown": "^0.23.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.27.0",
+    "valibot": "^1.5.0",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
   },
   "engines": {
     "node": ">=22.8.0"

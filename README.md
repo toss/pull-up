@@ -41,6 +41,27 @@ yarn add -D @pull-up/cli
 pnpm add -D @pull-up/cli
 ```
 
+### Standalone executable
+
+Download an executable from [GitHub Releases](https://github.com/toss/pull-up/releases):
+
+| Platform            | Executable            |
+| ------------------- | --------------------- |
+| Linux x64           | `pullup-linux-x64`    |
+| Linux arm64         | `pullup-linux-arm64`  |
+| macOS Intel         | `pullup-darwin-x64`   |
+| macOS Apple Silicon | `pullup-darwin-arm64` |
+
+For example, on macOS Apple Silicon:
+
+```bash
+chmod +x pullup-darwin-arm64
+./pullup-darwin-arm64 --version
+./pullup-darwin-arm64 sync
+```
+
+Use YAML configuration with the standalone executable. Built-in jobs do not require Node.js or a JavaScript package manager. Custom commands still require any runtimes or tools they invoke.
+
 ## Configuration
 
 Create `pullup.yml` or `pullup.yaml` in your project root:
@@ -53,7 +74,7 @@ jobs:
 
 `jobs` maps job identifiers to their settings. YAML configuration is validated before jobs run; invalid settings cause the command to exit with code 1.
 
-`pullup.yaml` is searched before `pullup.yml`.
+Configuration search starts at the working directory, or `--cwd`, and walks up to the nearest YAML configuration. Within each directory, `pullup.yaml` is searched before `pullup.yml`; empty files are skipped. `--root` sets the repository root for job inputs and outputs without changing where configuration search starts.
 
 ### Built-in Jobs
 
@@ -132,117 +153,54 @@ The package includes `schema.json` for autocomplete and validation in editors th
 
 The path is relative to the YAML file. For Yarn Plug'n'Play or a remote schema, use `https://unpkg.com/@pull-up/cli@<version>/schema.json`, replacing `<version>` with your installed package version.
 
-### JavaScript and TypeScript Configuration
-
-Starting in 0.0.8, JavaScript and TypeScript configuration files are deprecated. They continue to work, but pull-up prints one warning to stderr per command when it loads a `.js`, `.ts`, `.cjs`, or `.mjs` configuration file, including `.pulluprc` files with these extensions. See [Migration](#migration) to move to YAML.
-
-The `package.json` `pullup` field and JSON/YAML `.pulluprc` configurations remain supported without this deprecation warning.
-
-Use `pullup.config.ts`, `pullup.config.js`, `pullup.config.cjs`, or `pullup.config.mjs` for a JavaScript or TypeScript configuration:
-
-```ts
-import { defineConfig, codeownersJob } from '@pull-up/cli';
-
-export default defineConfig(codeownersJob());
-```
-
-The `package.json` `pullup` field and `.pulluprc` files are also supported. These formats are searched before `pullup.yaml` and `pullup.yml`.
-
-#### Custom Jobs
-
-Use `defineJob` to implement a custom transform in a JavaScript or TypeScript config:
-
-```ts
-import { defineConfig, defineJob } from '@pull-up/cli';
-
-const myJob = defineJob({
-  name: 'my-job',
-  input: ['packages/*/config.json'],
-  output: 'merged-config.json',
-  transform: (sources) => {
-    return JSON.stringify(sources.map((s) => JSON.parse(s.contents)));
-  },
-});
-
-export default defineConfig([myJob()]);
-```
-
-Transform functions receive source files as `{ path, contents }` objects and a context containing `rootDir` and `outputPath`. They can return a string or a promise of a string.
-
 ### Migration
 
-Replace a built-in job in `pullup.config.mjs`:
+Starting in 0.1.0, npm and standalone installations support only `pullup.yml` or `pullup.yaml`. Old configuration formats are ignored, and the npm package no longer exports JavaScript configuration helpers.
 
-```js
-import { defineConfig, codeownersJob } from '@pull-up/cli';
+Move built-in job settings from `pullup.config.ts`:
 
-export default defineConfig(
-  codeownersJob({
-    input: ['**/CODEOWNERS', '!**/fixtures/**'],
-    output: '.github/CODEOWNERS',
-  }),
-);
+```ts
+import { codeownersJob, defineConfig } from '@pull-up/cli';
+
+export default defineConfig(codeownersJob({ input: ['packages/**/CODEOWNERS'] }));
 ```
 
-With `pullup.yml`:
+Into `pullup.yml`:
 
 ```yaml
 jobs:
   codeowners:
     type: codeowners
-    input: ['**/CODEOWNERS', '!**/fixtures/**']
-    output: .github/CODEOWNERS
+    input: ['packages/**/CODEOWNERS']
 ```
 
-For a custom callback, move the transform into a command. For example, replace this `pullup.config.mjs`:
+For a custom callback such as:
 
 ```js
-import { defineConfig, defineJob } from '@pull-up/cli';
-
-const mergeConfigs = defineJob({
-  name: 'merge-configs',
-  input: ['packages/*/config.json'],
-  output: 'merged-config.json',
-  transform: (sources) => `${JSON.stringify(sources.map((source) => JSON.parse(source.contents)))}\n`,
-});
-
-export default defineConfig([mergeConfigs()]);
+const transform = (sources) => sources.map(({ contents }) => contents).join('\n');
 ```
 
-With `pullup.yml`:
+Move its body into `scripts/combine.mjs`, reading sources from stdin and writing the result to stdout:
+
+```js
+import { readFileSync } from 'node:fs';
+
+const { sources } = JSON.parse(readFileSync(0, 'utf8'));
+process.stdout.write(sources.map(({ contents }) => contents).join('\n'));
+```
+
+Then configure the command in `pullup.yml`:
 
 ```yaml
 jobs:
-  merge-configs:
+  combined:
     type: custom
-    command: 'node scripts/merge-configs.mjs'
-    input: ['packages/*/config.json']
-    output: merged-config.json
+    command: node scripts/combine.mjs
+    input: ['packages/**/config.txt']
+    output: combined.txt
 ```
 
-Create `scripts/merge-configs.mjs`:
-
-```js
-process.stdin.setEncoding('utf8');
-let input = '';
-for await (const chunk of process.stdin) {
-  input += chunk;
-}
-
-const { sources, context } = JSON.parse(input);
-
-try {
-  const configs = sources.map((source) => JSON.parse(source.contents));
-  process.stdout.write(`${JSON.stringify(configs)}\n`);
-} catch (error) {
-  console.error(`Failed to generate ${context.outputPath}: ${error.message}`);
-  process.exitCode = 1;
-}
-```
-
-The script reads sources and context from JSON on stdin and writes the generated contents, including the final newline, to stdout. It does not write the output file itself. Input patterns and output paths remain relative to the repository root; the command also runs from that root. Your environment must provide the runtime used by the command, such as Node.js in this example.
-
-After moving your jobs, delete the old JavaScript or TypeScript configuration file. Legacy configurations take precedence over `pullup.yaml` and `pullup.yml`, so leaving the old file in place prevents pull-up from loading your new YAML configuration. Run `pullup sync --dry-run` to preview the migrated jobs, then use `pullup sync` and `pullup check` as usual.
+This example requires Node.js in the user's environment. See [Custom Jobs](#custom-jobs) for the full stdin/stdout contract. Run `pullup sync --dry-run` to preview the migrated jobs, then `pullup sync` and `pullup check`.
 
 ## Usage
 
@@ -275,3 +233,18 @@ pullup check
 | `--root <path>` | Repository root path                |
 | `--cwd <path>`  | Working directory                   |
 | `--dry-run`     | Preview without writing (sync only) |
+| `--help`        | Show command help                   |
+| `--version`     | Show the installed version          |
+
+## Development
+
+```bash
+yarn test             # Source unit tests and the npm CLI
+yarn test:unit        # Source tests without building
+yarn test:integration # Build and test the npm CLI
+yarn test:exe         # Build and test the native standalone executable
+```
+
+The npm and standalone projects run the same tests in `tests/cli`. The standalone test environment provides only `sh` on PATH to verify that built-in jobs do not need an installed Node.js runtime.
+
+`yarn build` generates the npm CLI, `schema.json`, and the standalone executable for the current machine together. CI builds and tests all four supported platforms on native runners, then attaches the executables to the matching Changesets GitHub Release.

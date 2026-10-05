@@ -5,9 +5,82 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: release-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
 jobs:
+  prepare:
+    name: Prepare release version
+    if: github.repository == 'toss/pull-up'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@v3
+      - if: github.event_name == 'workflow_dispatch'
+        run: yarn install --immutable
+      - name: Create canary version
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          yarn changeset version --snapshot canary --snapshot-prerelease-template "{tag}.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"
+          version=$(node -p "require('./package.json').version")
+          case "$version" in
+            *"-canary.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}") ;;
+            *) echo "::error::No canary version was calculated. Add a changeset before publishing."; exit 1 ;;
+          esac
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Read release version
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+
+  binaries:
+    name: Build binary (${{ matrix.target }})
+    needs: prepare
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            runner: ubuntu-24.04
+          - target: linux-arm64
+            runner: ubuntu-24.04-arm
+          - target: darwin-x64
+            runner: macos-15-intel
+          - target: darwin-arm64
+            runner: macos-15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: jdx/mise-action@v3
+      - name: Set release version
+        run: npm pkg set version="$RELEASE_VERSION"
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      - run: yarn install --immutable
+      - run: yarn test:exe
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: pullup-${{ matrix.target }}
+          path: build/pullup-${{ matrix.target }}
+          archive: false
+          if-no-files-found: error
+          overwrite: true
+
   build:
     if: github.repository == 'toss/pull-up' && github.event_name == 'push'
+    needs: binaries
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -28,43 +101,84 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+      - name: Download tested binaries
+        if: steps.changesets.outputs.published == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: pullup-*
+          path: release-assets
+          merge-multiple: true
+      - name: Upload binaries to GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
+        with:
+          tag_name: v${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }}
+          files: |
+            release-assets/pullup-linux-x64
+            release-assets/pullup-linux-arm64
+            release-assets/pullup-darwin-x64
+            release-assets/pullup-darwin-arm64
+          fail_on_unmatched_files: true
 
   canary:
     name: Publish canary
     if: github.repository == 'toss/pull-up' && github.event_name == 'workflow_dispatch'
+    needs: [prepare, binaries]
     runs-on: ubuntu-latest
     concurrency:
       group: publish-canary
       cancel-in-progress: false
     permissions:
       id-token: write
-      contents: read
+      contents: write
       pull-requests: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
       - uses: jdx/mise-action@v3
+      - name: Set canary version
+        run: npm pkg set version="$RELEASE_VERSION"
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       - run: yarn install --immutable
       - run: yarn lint
       - run: yarn format:check
       - run: yarn test
       - run: yarn typecheck
-      - name: Create canary version
-        run: |
-          yarn changeset version --snapshot canary --snapshot-prerelease-template "{tag}.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}"
-          version=$(node -p "require('./package.json').version")
-          case "$version" in
-            *"-canary.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}") ;;
-            *) echo "::error::No canary version was calculated. Add a changeset before publishing."; exit 1 ;;
-          esac
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish canary to npm
-        run: npm publish --tag canary --access public
+        run: yarn changeset publish --tag canary --no-git-tag
         env:
           NPM_CONFIG_PROVENANCE: true
-      - name: Show install command
+      - name: Download tested binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: pullup-*
+          path: release-assets
+          merge-multiple: true
+      - name: Upload standalone canary
+        uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          draft: true
+          prerelease: true
+          make_latest: false
+          overwrite_files: false
+          files: |
+            release-assets/pullup-linux-x64
+            release-assets/pullup-linux-arm64
+            release-assets/pullup-darwin-x64
+            release-assets/pullup-darwin-arm64
+          fail_on_unmatched_files: true
+      - name: Publish standalone canary
+        run: gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: v${{ needs.prepare.outputs.version }}
+      - name: Show canary downloads
         run: |
-          version=$(node -p "require('./package.json').version")
-          printf 'Run this canary:\n\n    npx @pull-up/cli@%s --help\n' "$version" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Run this canary:\n\n    npx @pull-up/cli@%s --help\n\nStandalone binaries: %s\n' "$RELEASE_VERSION" "$RELEASE_URL" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.prepare.outputs.version }}

@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '.yarn/**', '**/.pnp.cjs', '**/.pnp.loader.mjs'],
+    ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '.yarn/**', '**/.pnp.cjs', '**/.pnp.loader.mjs'],
   },
   eslint.configs.recommended,
   tseslint.configs.recommended,

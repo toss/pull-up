@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 
-import { defineJob } from '../define-job';
+import type { Job } from '../types';
 
 interface CustomJobOptions {
   command: string;
@@ -8,19 +8,21 @@ interface CustomJobOptions {
   output: string;
 }
 
-export const customJob = defineJob((options: CustomJobOptions) => ({
-  name: 'custom',
-  input: options.input ?? [],
-  output: options.output,
-  transform: async (inputFiles, context) => {
-    const { stdout } = await execa('sh', ['-c', options.command], {
-      cwd: context.rootDir,
-      input: JSON.stringify({ sources: inputFiles, context }),
-      stripFinalNewline: false,
-      maxBuffer: Infinity,
-      killDescendants: true,
-    });
+export function customJob(options: CustomJobOptions): Job {
+  return {
+    name: 'custom',
+    input: options.input ?? [],
+    output: options.output,
+    transform: async (inputFiles, context) => {
+      const { stdout } = await execa('sh', ['-c', options.command], {
+        cwd: context.rootDir,
+        input: JSON.stringify({ sources: inputFiles, context }),
+        stripFinalNewline: false,
+        maxBuffer: Infinity,
+        killDescendants: true,
+      });
 
-    return stdout;
-  },
-}));
+      return stdout;
+    },
+  };
+}
