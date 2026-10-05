@@ -1,5 +1,15 @@
 # @pull-up/cli
 
+## 0.0.8
+
+### Patch Changes
+
+- [#39](https://github.com/toss/pull-up/pull/39) [`1e42984`](https://github.com/toss/pull-up/commit/1e429840b44e3b62492ea213d9809fe274fcee49) Thanks [@ho991217](https://github.com/ho991217)! - Add `type: custom` jobs to YAML configuration. Commands receive source files and execution context as JSON on stdin and write generated file contents to stdout.
+
+- [#39](https://github.com/toss/pull-up/pull/39) [`1e42984`](https://github.com/toss/pull-up/commit/1e429840b44e3b62492ea213d9809fe274fcee49) Thanks [@ho991217](https://github.com/ho991217)! - Warn when loading JavaScript or TypeScript configuration files while preserving their behavior. Add migration examples for built-in and custom jobs using YAML configuration.
+
+- [#39](https://github.com/toss/pull-up/pull/39) [`1e42984`](https://github.com/toss/pull-up/commit/1e429840b44e3b62492ea213d9809fe274fcee49) Thanks [@ho991217](https://github.com/ho991217)! - Add YAML configuration and JSON Schema support.
+
 ## 0.0.7
 
 ### Patch Changes
