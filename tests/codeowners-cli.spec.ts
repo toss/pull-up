@@ -13,6 +13,16 @@ const config = `import { codeownersJob } from ${JSON.stringify(CORE_URL)};
 export default [codeownersJob()];
 `;
 
+function expectScriptConfigWarning(result: { stdout: string; stderr: string }, configPath: string) {
+  expect(result.stderr).toBe(
+    `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${configPath}\n` +
+      'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.\n' +
+      'Migration guide: https://github.com/toss/pull-up#migration\n',
+  );
+  expect(result.stderr.match(/\[DEPRECATED\]/g)).toHaveLength(1);
+  expect(result.stdout).not.toContain('[DEPRECATED]');
+}
+
 describe('codeowners-cli', () => {
   it.each([
     { name: 'the repository root', cwd: 'repo', explicitRoot: false },
@@ -45,13 +55,15 @@ describe('codeowners-cli', () => {
     const options: string[] = [];
     if (scenario.explicitRoot) options.push('--root', rootDir);
     if (scenario.explicitCwd === true) options.push('--cwd', subdirectory);
+    const configDirectory = scenario.explicitCwd === true ? subdirectory : path.join(fixture.root, scenario.cwd);
+    const configPath = path.join(configDirectory, 'pullup.config.mjs');
 
     const sync = await execFileAsync(process.execPath, [CLI_PATH, 'sync', ...options], {
       cwd: path.join(fixture.root, scenario.cwd),
       timeout: 10_000,
     });
     expect(sync.stdout).toContain('codeowners synced');
-    expect(sync.stderr).toBe('');
+    expectScriptConfigWarning(sync, configPath);
 
     expect(await readFile(path.join(rootDir, '.github/CODEOWNERS'), 'utf8')).toBe(
       '* @root-team\n' +
@@ -73,7 +85,7 @@ describe('codeowners-cli', () => {
       timeout: 10_000,
     });
     expect(check.stdout).toContain('All files are up to date');
-    expect(check.stderr).toBe('');
+    expectScriptConfigWarning(check, configPath);
 
     if (scenario.explicitRoot || scenario.explicitCwd === true) {
       await expect(readFile(path.join(otherRoot, '.github/CODEOWNERS'), 'utf8')).rejects.toMatchObject({
@@ -100,11 +112,12 @@ export default [codeownersJob({ input: ${JSON.stringify(scenario.input)} })];
 
     await mkdir(path.join(rootDir, '.git'));
     await writeFile(path.join(rootDir, 'pullup.config.mjs'), customConfig);
-    await execFileAsync(process.execPath, [CLI_PATH, 'sync'], {
+    const sync = await execFileAsync(process.execPath, [CLI_PATH, 'sync'], {
       cwd: rootDir,
       timeout: 10_000,
     });
 
+    expectScriptConfigWarning(sync, path.join(rootDir, 'pullup.config.mjs'));
     expect(await readFile(path.join(rootDir, '.github/CODEOWNERS'), 'utf8')).toBe(
       '/services/auth/ @auth-team\n' + '/services/auth/login/ @login-team\n',
     );
@@ -125,7 +138,7 @@ export default [codeownersJob({ input: ${JSON.stringify(scenario.input)} })];
     const sync = await execFileAsync(process.execPath, [CLI_PATH, 'sync'], { cwd: fixture.root, timeout: 10_000 });
 
     expect(sync.stdout).toContain('codeowners synced');
-    expect(sync.stderr).toBe('');
+    expectScriptConfigWarning(sync, path.join(fixture.root, 'pullup.config.mjs'));
     expect(await readFile(path.join(fixture.root, '.github/CODEOWNERS'), 'utf8')).toBe(
       '*.js @root-team\n' +
         '/packages/web/**/*.ts @frontend-team\n' +
@@ -137,6 +150,6 @@ export default [codeownersJob({ input: ${JSON.stringify(scenario.input)} })];
     const check = await execFileAsync(process.execPath, [CLI_PATH, 'check'], { cwd: fixture.root, timeout: 10_000 });
 
     expect(check.stdout).toContain('All files are up to date');
-    expect(check.stderr).toBe('');
+    expectScriptConfigWarning(check, path.join(fixture.root, 'pullup.config.mjs'));
   });
 });

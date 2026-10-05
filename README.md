@@ -134,6 +134,10 @@ The path is relative to the YAML file. For Yarn Plug'n'Play or a remote schema, 
 
 ### JavaScript and TypeScript Configuration
 
+Starting in 0.0.8, JavaScript and TypeScript configuration files are deprecated. They continue to work, but pull-up prints one warning to stderr per command when it loads a `.js`, `.ts`, `.cjs`, or `.mjs` configuration file, including `.pulluprc` files with these extensions. See [Migration](#migration) to move to YAML.
+
+The `package.json` `pullup` field and JSON/YAML `.pulluprc` configurations remain supported without this deprecation warning.
+
 Use `pullup.config.ts`, `pullup.config.js`, `pullup.config.cjs`, or `pullup.config.mjs` for a JavaScript or TypeScript configuration:
 
 ```ts
@@ -164,6 +168,81 @@ export default defineConfig([myJob()]);
 ```
 
 Transform functions receive source files as `{ path, contents }` objects and a context containing `rootDir` and `outputPath`. They can return a string or a promise of a string.
+
+### Migration
+
+Replace a built-in job in `pullup.config.mjs`:
+
+```js
+import { defineConfig, codeownersJob } from '@pull-up/cli';
+
+export default defineConfig(
+  codeownersJob({
+    input: ['**/CODEOWNERS', '!**/fixtures/**'],
+    output: '.github/CODEOWNERS',
+  }),
+);
+```
+
+With `pullup.yml`:
+
+```yaml
+jobs:
+  codeowners:
+    type: codeowners
+    input: ['**/CODEOWNERS', '!**/fixtures/**']
+    output: .github/CODEOWNERS
+```
+
+For a custom callback, move the transform into a command. For example, replace this `pullup.config.mjs`:
+
+```js
+import { defineConfig, defineJob } from '@pull-up/cli';
+
+const mergeConfigs = defineJob({
+  name: 'merge-configs',
+  input: ['packages/*/config.json'],
+  output: 'merged-config.json',
+  transform: (sources) => `${JSON.stringify(sources.map((source) => JSON.parse(source.contents)))}\n`,
+});
+
+export default defineConfig([mergeConfigs()]);
+```
+
+With `pullup.yml`:
+
+```yaml
+jobs:
+  merge-configs:
+    type: custom
+    command: 'node scripts/merge-configs.mjs'
+    input: ['packages/*/config.json']
+    output: merged-config.json
+```
+
+Create `scripts/merge-configs.mjs`:
+
+```js
+process.stdin.setEncoding('utf8');
+let input = '';
+for await (const chunk of process.stdin) {
+  input += chunk;
+}
+
+const { sources, context } = JSON.parse(input);
+
+try {
+  const configs = sources.map((source) => JSON.parse(source.contents));
+  process.stdout.write(`${JSON.stringify(configs)}\n`);
+} catch (error) {
+  console.error(`Failed to generate ${context.outputPath}: ${error.message}`);
+  process.exitCode = 1;
+}
+```
+
+The script reads sources and context from JSON on stdin and writes the generated contents, including the final newline, to stdout. It does not write the output file itself. Input patterns and output paths remain relative to the repository root; the command also runs from that root. Your environment must provide the runtime used by the command, such as Node.js in this example.
+
+After moving your jobs, delete the old JavaScript or TypeScript configuration file. Legacy configurations take precedence over `pullup.yaml` and `pullup.yml`, so leaving the old file in place prevents pull-up from loading your new YAML configuration. Run `pullup sync --dry-run` to preview the migrated jobs, then use `pullup sync` and `pullup check` as usual.
 
 ## Usage
 

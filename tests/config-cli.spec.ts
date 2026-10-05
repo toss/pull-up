@@ -23,8 +23,16 @@ const config = `jobs:
     output: .github/CODEOWNERS
 `;
 
-function runCli(command: string, rootDir: string) {
-  return execFileAsync(process.execPath, [CLI_PATH, command], {
+function scriptConfigWarning(configPath: string) {
+  return (
+    `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${configPath}\n` +
+    'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.\n' +
+    'Migration guide: https://github.com/toss/pull-up#migration\n'
+  );
+}
+
+function runCli(command: string, rootDir: string, args: string[] = []) {
+  return execFileAsync(process.execPath, [CLI_PATH, command, ...args], {
     cwd: rootDir,
     timeout: 10_000,
   }).then(
@@ -137,9 +145,49 @@ describe('YAML config CLI', () => {
       const result = await runCli(command, fixture.root);
 
       expect(result.code).toBe(0);
-      expect(result.stderr).toBe('');
+      expect(result.stderr).toBe(scriptConfigWarning(path.join(fixture.root, 'pullup.config.mjs')));
+      expect(result.stderr.match(/\[DEPRECATED\]/g)).toHaveLength(1);
+      expect(result.stdout).not.toContain('[DEPRECATED]');
       expect(result.stdout).toContain(command === 'sync' ? 'custom synced' : 'All files are up to date');
       expect(await readFile(path.join(fixture.root, '.github/CODEOWNERS'), 'utf8')).toBe(generatedContents);
     });
+  });
+});
+
+describe('script config CLI deprecation warning', () => {
+  it('warns once for sync --dry-run while preserving the preview and existing output', async () => {
+    await using fixture = await Fixture.create({
+      '.git': {},
+      'pullup.config.mjs': scriptConfig,
+      '.github': { CODEOWNERS: existingContents },
+    });
+
+    const result = await runCli('sync', fixture.root, ['--dry-run']);
+
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe(scriptConfigWarning(path.join(fixture.root, 'pullup.config.mjs')));
+    expect(result.stderr.match(/\[DEPRECATED\]/g)).toHaveLength(1);
+    expect(result.stdout).not.toContain('[DEPRECATED]');
+    expect(result.stdout).toContain('[Job] custom');
+    expect(result.stdout).toContain('Output: .github/CODEOWNERS');
+    expect(result.stdout).toContain(generatedContents.trimEnd());
+    expect(await readFile(path.join(fixture.root, '.github/CODEOWNERS'), 'utf8')).toBe(existingContents);
+  });
+
+  it('warns once without changing the outdated check failure or existing output', async () => {
+    await using fixture = await Fixture.create({
+      '.git': {},
+      'pullup.config.mjs': scriptConfig,
+      '.github': { CODEOWNERS: existingContents },
+    });
+
+    const result = await runCli('check', fixture.root);
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain(scriptConfigWarning(path.join(fixture.root, 'pullup.config.mjs')));
+    expect(result.stderr.match(/\[DEPRECATED\]/g)).toHaveLength(1);
+    expect(result.stderr).toContain("custom is outdated. Run 'pullup sync' to update.");
+    expect(result.stdout).toBe('');
+    expect(await readFile(path.join(fixture.root, '.github/CODEOWNERS'), 'utf8')).toBe(existingContents);
   });
 });

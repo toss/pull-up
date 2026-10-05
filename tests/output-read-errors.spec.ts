@@ -17,6 +17,20 @@ const config = `export default [
 ];
 `;
 
+function scriptConfigWarning(rootDir: string) {
+  return (
+    `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${path.join(rootDir, 'pullup.config.mjs')}\n` +
+    'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.\n' +
+    'Migration guide: https://github.com/toss/pull-up#migration\n'
+  );
+}
+
+function expectScriptConfigWarning(result: { stdout: string; stderr: string }, rootDir: string) {
+  expect(result.stderr).toContain(scriptConfigWarning(rootDir));
+  expect(result.stderr.match(/\[DEPRECATED\]/g)).toHaveLength(1);
+  expect(result.stdout).not.toContain('[DEPRECATED]');
+}
+
 async function prepareRepository(rootDir: string) {
   await mkdir(path.join(rootDir, '.git'));
   await mkdir(path.join(rootDir, '.github'), { recursive: true });
@@ -44,6 +58,7 @@ describe('output read errors', () => {
     const result = await runCli(command, fixture.root);
 
     expect(result.code).toBe(1);
+    expectScriptConfigWarning(result, fixture.root);
     expect(result.stdout + result.stderr).toContain('EISDIR');
     expect(result.stdout + result.stderr).toContain(outputPath);
     expect(result.stdout + result.stderr).not.toContain('outdated');
@@ -66,6 +81,7 @@ describe('output read errors', () => {
         const result = await runCli(command, fixture.root);
 
         expect(result.code).toBe(1);
+        expectScriptConfigWarning(result, fixture.root);
         expect(result.stdout + result.stderr).toContain('EACCES');
         expect(result.stdout + result.stderr).toContain(outputPath);
         expect(result.stdout + result.stderr).not.toContain('outdated');
@@ -87,14 +103,16 @@ describe('output read errors', () => {
     const sync = await runCli('sync', fixture.root);
 
     expect(sync.code).toBe(0);
-    expect(sync.stderr).toBe('');
+    expect(sync.stderr).toBe(scriptConfigWarning(fixture.root));
+    expectScriptConfigWarning(sync, fixture.root);
     expect(sync.stdout).toContain('unreadable synced');
     expect(await readFile(path.join(fixture.root, output), 'utf8')).toBe('generated output\n');
 
     const check = await runCli('check', fixture.root);
 
     expect(check.code).toBe(0);
-    expect(check.stderr).toBe('');
+    expect(check.stderr).toBe(scriptConfigWarning(fixture.root));
+    expectScriptConfigWarning(check, fixture.root);
     expect(check.stdout).toContain('All files are up to date');
   });
 });

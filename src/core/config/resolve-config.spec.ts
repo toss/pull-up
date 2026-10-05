@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { Fixture } from '@fixture-kit/core';
 
 import { resolveConfig } from './resolve-config';
@@ -18,6 +20,10 @@ const defaultYamlConfig = `jobs:
 `;
 
 describe('resolveConfig', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -33,6 +39,7 @@ describe('resolveConfig', () => {
         transform: expect.any(Function),
       },
     ]);
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it('resolves explicit input and output from pullup.yaml', async () => {
@@ -83,35 +90,73 @@ describe('resolveConfig', () => {
     ['.pulluprc.ts', tsConfig],
     ['.pulluprc.cjs', cjsConfig],
     ['.pulluprc.mjs', esmConfig],
-    ['.pulluprc', rcConfig],
-    ['.pulluprc.json', jsonConfig],
-    ['.pulluprc.yaml', rcConfig],
-    ['.pulluprc.yml', rcConfig],
-  ])('resolves jobs from %s', async (filename, contents) => {
+  ])('resolves jobs from %s and warns about deprecation once', async (filename, contents) => {
     await using fixture = await Fixture.create({
       'package.json': JSON.stringify({ type: 'module' }),
       [filename]: contents,
     });
 
     expect(await resolveConfig(fixture.root)).toEqual(customJobs);
+    expect(console.warn).toHaveBeenCalledOnce();
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(path.join(fixture.root, filename)));
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('[DEPRECATED]'));
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('pullup.yml or pullup.yaml'));
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('external commands'));
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('https://github.com/toss/pull-up#migration'));
+  });
+
+  it.each([
+    ['.pulluprc', rcConfig],
+    ['.pulluprc.json', jsonConfig],
+    ['.pulluprc.yaml', rcConfig],
+    ['.pulluprc.yml', rcConfig],
+  ])('resolves jobs from %s without a deprecation warning', async (filename, contents) => {
+    await using fixture = await Fixture.create({
+      'package.json': JSON.stringify({ type: 'module' }),
+      [filename]: contents,
+    });
+
+    expect(await resolveConfig(fixture.root)).toEqual(customJobs);
+    expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  it('warns about an empty JavaScript configuration', async () => {
+    await using fixture = await Fixture.create({ 'pullup.config.cjs': 'module.exports = [];' });
+
+    expect(await resolveConfig(fixture.root)).toEqual([]);
+    expect(console.warn).toHaveBeenCalledOnce();
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(path.join(fixture.root, 'pullup.config.cjs')));
+  });
+
+  it('warns about a script configuration discovered inside .config', async () => {
+    await using fixture = await Fixture.create({ '.config': { 'pulluprc.cjs': cjsConfig } });
+
+    expect(await resolveConfig(fixture.root)).toEqual(customJobs);
+    expect(console.warn).toHaveBeenCalledOnce();
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining(path.join(fixture.root, '.config', 'pulluprc.cjs')),
+    );
   });
 
   it('resolves jobs from package.json#pullup', async () => {
     await using fixture = await Fixture.create({ 'package.json': JSON.stringify({ pullup: customJobs }) });
 
     expect(await resolveConfig(fixture.root)).toEqual(customJobs);
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it('resolves jobs from .config/pulluprc', async () => {
     await using fixture = await Fixture.create({ '.config': { pulluprc: rcConfig } });
 
     expect(await resolveConfig(fixture.root)).toEqual(customJobs);
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it('returns no jobs when no config exists', async () => {
     await using fixture = await Fixture.create({});
 
     expect(await resolveConfig(fixture.root)).toEqual([]);
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it('prefers pullup.yaml over pullup.yml', async () => {
@@ -129,10 +174,9 @@ describe('resolveConfig', () => {
       'pullup.config.js': esmConfig,
       'pullup.yml': 'jobs: []\n',
     });
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
     expect(await resolveConfig(fixture.root)).toEqual(customJobs);
-    expect(warn).not.toHaveBeenCalled();
+    expect(console.warn).toHaveBeenCalledOnce();
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(path.join(fixture.root, 'pullup.config.js')));
   });
 
   it('prefers package.json over pullup.config.js', async () => {
@@ -142,6 +186,7 @@ describe('resolveConfig', () => {
     });
 
     expect(await resolveConfig(fixture.root)).toEqual(customJobs);
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it('uses cosmiconfig.searchPlaces from package.json', async () => {
