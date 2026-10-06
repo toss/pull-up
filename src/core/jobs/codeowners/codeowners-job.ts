@@ -1,7 +1,6 @@
 import path from 'node:path';
 
-import { defineJob } from '../../define-job';
-import type { Source } from '../../types';
+import type { Job, Source } from '../../types';
 import { Codeowners } from './codeowners';
 
 interface CodeownersJobOptions {
@@ -12,29 +11,31 @@ interface CodeownersJobOptions {
 const DEFAULT_FROM_PATTERN = ['**/CODEOWNERS'];
 const DEFAULT_OUTPUT_PATH = '.github/CODEOWNERS';
 
-export const codeownersJob = defineJob((options?: CodeownersJobOptions) => ({
-  name: 'codeowners',
-  input: options?.input ?? DEFAULT_FROM_PATTERN,
-  output: options?.output ?? DEFAULT_OUTPUT_PATH,
-  transform: (inputFiles, { rootDir }) => {
-    const sortedInputFiles = sortByDirectory(inputFiles, rootDir);
+export function codeownersJob(options?: CodeownersJobOptions): Job {
+  return {
+    name: 'codeowners',
+    input: options?.input ?? DEFAULT_FROM_PATTERN,
+    output: options?.output ?? DEFAULT_OUTPUT_PATH,
+    transform: (inputFiles, { rootDir }) => {
+      const sortedInputFiles = sortByDirectory(inputFiles, rootDir);
 
-    const codeowners = Codeowners.merge(
-      sortedInputFiles.map(({ file, baseDir }) =>
-        Codeowners.from(file.contents).map(({ pattern, owners }) => ({
-          pattern: toAbsolutePattern(pattern, baseDir),
-          owners,
-        })),
-      ),
-    );
+      const codeowners = Codeowners.merge(
+        sortedInputFiles.map(({ file, baseDir }) =>
+          Codeowners.from(file.contents).map(({ pattern, owners }) => ({
+            pattern: toAbsolutePattern(pattern, baseDir),
+            owners,
+          })),
+        ),
+      );
 
-    if (codeowners.isEmpty()) {
-      return '';
-    }
+      if (codeowners.isEmpty()) {
+        return '';
+      }
 
-    return codeowners.stringify();
-  },
-}));
+      return codeowners.stringify();
+    },
+  };
+}
 
 // Compare directory segments to keep parents before their descendants.
 const sortByDirectory = (inputFiles: Source[], rootDir: string) =>

@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { defaultLoaders } from 'cosmiconfig';
+import { load } from 'js-yaml';
 
 const { sources } = JSON.parse(readFileSync(0, 'utf8'));
 const configs = sources.map(({ path: sourcePath, contents }) => ({
   path: sourcePath,
-  config: defaultLoaders['.yaml'](sourcePath, contents),
+  config: load(contents, { filename: sourcePath }),
 }));
 const registry = configs.find(({ path: sourcePath }) => sourcePath === 'codeowners.yaml').config;
 const declarations = configs

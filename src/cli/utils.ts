@@ -2,7 +2,7 @@ import { findUp } from 'find-up';
 import path from 'path';
 
 export async function resolveRepositoryRoot(cwd: string, root?: string) {
-  if (root != null) return root;
+  if (root != null) return path.resolve(root);
 
   const dotGit = await findUp('.git', {
     type: 'both',

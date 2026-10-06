@@ -1,4 +1,4 @@
-import { Cli } from 'clipanion';
+import { Builtins, Cli } from 'clipanion';
 
 import packageJson from '../../package.json' with { type: 'json' };
 import { CheckCommand, SyncCommand } from './commands';
@@ -13,5 +13,7 @@ const cli = new Cli({
 
 cli.register(CheckCommand);
 cli.register(SyncCommand);
+cli.register(Builtins.HelpCommand);
+cli.register(Builtins.VersionCommand);
 
 cli.runExit(args);

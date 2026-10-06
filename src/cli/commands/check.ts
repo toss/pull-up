@@ -29,7 +29,7 @@ export class CheckCommand extends Command {
 
     if (jobs.length === 0) {
       console.log(styleText('yellow', '✘ No jobs found to check'));
-      return;
+      return 0;
     }
 
     const results = await Promise.all(jobs.map((job) => runJob(job, repoRoot)));
@@ -37,10 +37,11 @@ export class CheckCommand extends Command {
     for (const { isSame, jobInfo } of results) {
       if (!isSame) {
         console.error(styleText('red', `✘ ${jobInfo.name} is outdated. Run 'pullup sync' to update.`));
-        process.exit(1);
+        return 1;
       }
     }
 
     console.log(styleText('green', '✔ All files are up to date'));
+    return 0;
   }
 }
