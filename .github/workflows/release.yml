@@ -44,11 +44,14 @@ jobs:
           printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
 
   binaries:
-    name: Build binary (${{ matrix.target }})
+    name: Build and package binary (${{ matrix.target }})
     needs: prepare
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      RELEASE_TARGET: ${{ matrix.target }}
     strategy:
       fail-fast: false
       matrix:
@@ -66,14 +69,16 @@ jobs:
       - uses: jdx/mise-action@v3
       - name: Set release version
         run: npm pkg set version="$RELEASE_VERSION"
-        env:
-          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       - run: yarn install --immutable
       - run: yarn test:exe
+      - name: Package standalone executable
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7
+        with:
+          version: v2.18.2
+          args: release --snapshot --clean
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: pullup-${{ matrix.target }}
-          path: build/pullup-${{ matrix.target }}
+          path: build/release/pullup-v${{ needs.prepare.outputs.version }}-${{ matrix.target }}.tar.gz
           archive: false
           if-no-files-found: error
           overwrite: true
@@ -101,23 +106,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      - name: Download tested binaries
+      - name: Download tested archives
         if: steps.changesets.outputs.published == 'true'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: pullup-*
+          pattern: pullup-v${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }}-*.tar.gz
           path: release-assets
           merge-multiple: true
-      - name: Upload binaries to GitHub Release
+      - name: Upload archives to GitHub Release
         if: steps.changesets.outputs.published == 'true'
         uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
         with:
           tag_name: v${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }}
-          files: |
-            release-assets/pullup-linux-x64
-            release-assets/pullup-linux-arm64
-            release-assets/pullup-darwin-x64
-            release-assets/pullup-darwin-arm64
+          files: release-assets/pullup-v${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }}-*.tar.gz
           fail_on_unmatched_files: true
 
   canary:
@@ -150,10 +151,10 @@ jobs:
         run: yarn changeset publish --tag canary --no-git-tag
         env:
           NPM_CONFIG_PROVENANCE: true
-      - name: Download tested binaries
+      - name: Download tested archives
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: pullup-*
+          pattern: pullup-v${{ needs.prepare.outputs.version }}-*.tar.gz
           path: release-assets
           merge-multiple: true
       - name: Upload standalone canary
@@ -165,11 +166,7 @@ jobs:
           prerelease: true
           make_latest: false
           overwrite_files: false
-          files: |
-            release-assets/pullup-linux-x64
-            release-assets/pullup-linux-arm64
-            release-assets/pullup-darwin-x64
-            release-assets/pullup-darwin-arm64
+          files: release-assets/pullup-v${{ needs.prepare.outputs.version }}-*.tar.gz
           fail_on_unmatched_files: true
       - name: Publish standalone canary
         run: gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false

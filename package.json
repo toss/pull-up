@@ -6,6 +6,7 @@
     "pullup": "./dist/bin/index.mjs"
   },
   "author": "Hoyeon Lee <hoyeon@toss.im>",
+  "license": "MIT",
   "bugs": "https://github.com/toss/pull-up/issues",
   "keywords": [
     "pull-up",

@@ -43,21 +43,23 @@ pnpm add -D @pull-up/cli
 
 ### Standalone executable
 
-Download an executable from [GitHub Releases](https://github.com/toss/pull-up/releases):
+Download an archive from [GitHub Releases](https://github.com/toss/pull-up/releases), replacing `<version>` with the release version:
 
-| Platform            | Executable            |
-| ------------------- | --------------------- |
-| Linux x64           | `pullup-linux-x64`    |
-| Linux arm64         | `pullup-linux-arm64`  |
-| macOS Intel         | `pullup-darwin-x64`   |
-| macOS Apple Silicon | `pullup-darwin-arm64` |
+| Platform            | Archive                                 |
+| ------------------- | --------------------------------------- |
+| Linux x64           | `pullup-v<version>-linux-x64.tar.gz`    |
+| Linux arm64         | `pullup-v<version>-linux-arm64.tar.gz`  |
+| macOS Intel         | `pullup-v<version>-darwin-x64.tar.gz`   |
+| macOS Apple Silicon | `pullup-v<version>-darwin-arm64.tar.gz` |
 
-For example, on macOS Apple Silicon:
+Each archive contains the executable `pullup` and `LICENSE`. Extracting the archive preserves the executable's permissions.
+
+For example, on macOS Apple Silicon, replacing `0.1.0` with the downloaded release version:
 
 ```bash
-chmod +x pullup-darwin-arm64
-./pullup-darwin-arm64 --version
-./pullup-darwin-arm64 sync
+tar -xzf pullup-v0.1.0-darwin-arm64.tar.gz
+./pullup --version
+./pullup sync
 ```
 
 Use YAML configuration with the standalone executable. Built-in jobs do not require Node.js or a JavaScript package manager. Custom commands still require any runtimes or tools they invoke.
@@ -247,4 +249,4 @@ yarn test:exe         # Build and test the native standalone executable
 
 The npm and standalone projects run the same tests in `tests/cli`. The standalone test environment provides only `sh` on PATH to verify that built-in jobs do not need an installed Node.js runtime.
 
-`yarn build` generates the npm CLI, `schema.json`, and the standalone executable for the current machine together. CI builds and tests all four supported platforms on native runners, then attaches the executables to the matching Changesets GitHub Release.
+`yarn build` generates the npm CLI, `schema.json`, and the standalone executable for the current machine together. CI builds and tests all four supported platforms on native runners, uses GoReleaser to package each executable and `LICENSE` as a versioned `.tar.gz`, and attaches the archives to the matching Changesets GitHub Release.

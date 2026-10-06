@@ -1,0 +1,27 @@
+version: 2
+project_name: pullup
+dist: build/release
+
+builds:
+  - builder: node
+    skip: true
+
+archives:
+  - meta: true
+    formats: [tar.gz]
+    name_template: 'pullup-v{{ .Env.RELEASE_VERSION }}-{{ .Env.RELEASE_TARGET }}'
+    files:
+      - src: 'build/pullup-{{ .Env.RELEASE_TARGET }}'
+        dst: pullup
+        info:
+          mode: 0755
+      - LICENSE
+
+snapshot:
+  version_template: '{{ .Env.RELEASE_VERSION }}'
+
+checksum:
+  disable: true
+
+changelog:
+  disable: true
