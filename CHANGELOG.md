@@ -1,5 +1,11 @@
 # @pull-up/cli
 
+## 0.0.9
+
+### Patch Changes
+
+- [#42](https://github.com/toss/pull-up/pull/42) [`0f61cef`](https://github.com/toss/pull-up/commit/0f61cefb05541abbfeb543625592dc95320a1d24) Thanks [@ho991217](https://github.com/ho991217)! - Remove the deprecation warning for JavaScript and TypeScript configuration files.
+
 ## 0.0.8
 
 ### Patch Changes
