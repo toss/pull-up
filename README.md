@@ -134,9 +134,7 @@ The path is relative to the YAML file. For Yarn Plug'n'Play or a remote schema, 
 
 ### JavaScript and TypeScript Configuration
 
-Starting in 0.0.8, JavaScript and TypeScript configuration files are deprecated. They continue to work, but pull-up prints one warning to stderr per command when it loads a `.js`, `.ts`, `.cjs`, or `.mjs` configuration file, including `.pulluprc` files with these extensions. See [Migration](#migration) to move to YAML.
-
-The `package.json` `pullup` field and JSON/YAML `.pulluprc` configurations remain supported without this deprecation warning.
+JavaScript and TypeScript configuration files are supported alongside YAML configuration.
 
 Use `pullup.config.ts`, `pullup.config.js`, `pullup.config.cjs`, or `pullup.config.mjs` for a JavaScript or TypeScript configuration:
 

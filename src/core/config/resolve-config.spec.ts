@@ -1,5 +1,3 @@
-import path from 'node:path';
-
 import { Fixture } from '@fixture-kit/core';
 
 import { resolveConfig } from './resolve-config';
@@ -90,19 +88,14 @@ describe('resolveConfig', () => {
     ['.pulluprc.ts', tsConfig],
     ['.pulluprc.cjs', cjsConfig],
     ['.pulluprc.mjs', esmConfig],
-  ])('resolves jobs from %s and warns about deprecation once', async (filename, contents) => {
+  ])('resolves jobs from %s without a deprecation warning', async (filename, contents) => {
     await using fixture = await Fixture.create({
       'package.json': JSON.stringify({ type: 'module' }),
       [filename]: contents,
     });
 
     expect(await resolveConfig(fixture.root)).toEqual(customJobs);
-    expect(console.warn).toHaveBeenCalledOnce();
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(path.join(fixture.root, filename)));
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('[DEPRECATED]'));
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('pullup.yml or pullup.yaml'));
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('external commands'));
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('https://github.com/toss/pull-up#migration'));
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -120,22 +113,18 @@ describe('resolveConfig', () => {
     expect(console.warn).not.toHaveBeenCalled();
   });
 
-  it('warns about an empty JavaScript configuration', async () => {
+  it('resolves an empty JavaScript configuration without a deprecation warning', async () => {
     await using fixture = await Fixture.create({ 'pullup.config.cjs': 'module.exports = [];' });
 
     expect(await resolveConfig(fixture.root)).toEqual([]);
-    expect(console.warn).toHaveBeenCalledOnce();
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(path.join(fixture.root, 'pullup.config.cjs')));
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
-  it('warns about a script configuration discovered inside .config', async () => {
+  it('resolves a script configuration inside .config without a deprecation warning', async () => {
     await using fixture = await Fixture.create({ '.config': { 'pulluprc.cjs': cjsConfig } });
 
     expect(await resolveConfig(fixture.root)).toEqual(customJobs);
-    expect(console.warn).toHaveBeenCalledOnce();
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining(path.join(fixture.root, '.config', 'pulluprc.cjs')),
-    );
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it('resolves jobs from package.json#pullup', async () => {
@@ -175,8 +164,7 @@ describe('resolveConfig', () => {
       'pullup.yml': 'jobs: []\n',
     });
     expect(await resolveConfig(fixture.root)).toEqual(customJobs);
-    expect(console.warn).toHaveBeenCalledOnce();
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(path.join(fixture.root, 'pullup.config.js')));
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it('prefers package.json over pullup.config.js', async () => {

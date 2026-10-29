@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { styleText } from 'node:util';
 
 import { cosmiconfig, getDefaultSearchPlaces } from 'cosmiconfig';
 import * as v from 'valibot';
@@ -21,20 +20,6 @@ export async function resolveConfig(cwd: string): Promise<Job[]> {
 
   if (['pullup.yaml', 'pullup.yml'].includes(path.basename(result.filepath))) {
     return toJobs(v.parse(ConfigSchema, result.config));
-  }
-
-  if (['.js', '.ts', '.cjs', '.mjs'].includes(path.extname(result.filepath))) {
-    console.warn(
-      styleText(
-        'yellow',
-        [
-          `[DEPRECATED] JavaScript/TypeScript configuration is deprecated: ${result.filepath}`,
-          'Use pullup.yml or pullup.yaml for built-in jobs and external commands for custom transforms.',
-          'Migration guide: https://github.com/toss/pull-up#migration',
-          '',
-        ].join('\n'),
-      ),
-    );
   }
 
   return result.config as Job[];
